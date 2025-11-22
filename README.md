@@ -1,272 +1,161 @@
-# Scytales MID SDK - Android Example Application
+# Scytales MID SDK - Android Example
 
-A modern Android example application demonstrating the integration and usage of the Scytales MID SDK using Jetpack Compose and Kotlin.
+A reference Android application demonstrating integration of the Scytales Mobile Identity (MID) SDK for digital identity wallet functionality. Built with Jetpack Compose and Kotlin, following modern Android development practices.
 
-## 📱 Project Overview
+## Overview
 
-This project showcases best practices for Android development with the Scytales MID SDK, including:
-- Modern UI with Jetpack Compose and Material Design 3
-- Clean Architecture with MVVM pattern
-- Adaptive navigation for different screen sizes
-- Type-safe development with Kotlin
+This example application showcases how to integrate the Scytales MID SDK to build a digital identity wallet that supports:
 
-## 🛠️ Technology Stack
+- Issuing and storing digital credentials (mDL, SD-JWT-VC)
+- Presenting credentials in person (proximity) and online (remote)
+- Managing multiple document types and credentials
+- Biometric enrollment and authentication
 
-- **Language**: Kotlin 2.0.21
-- **UI Framework**: Jetpack Compose
-- **Design System**: Material Design 3
-- **Build System**: Gradle with Kotlin DSL
-- **Min SDK**: 28 (Android 9.0 Pie)
+**SDK Version:** 2.0.0-SNAPSHOT
+
+## Features
+
+### Supported Document Formats
+
+| Format | Description | Status |
+|--------|-------------|--------|
+| **ISO mDL (mso_mdoc)** | ISO/IEC 18013-5 mobile driving license | ✅ Full support |
+| **SD-JWT-VC** | Selective Disclosure JWT Verifiable Credentials | ✅ Full support |
+
+### Document Issuance Methods
+
+| Method | Description | Features | Implementation |
+|--------|-------------|----------|----------------|
+| **Scytales Manager** | Direct issuance via organization backend with biometric enrollment | Organization-based issuance, FaceTec biometric verification | ✅ [`DocumentTypesScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/manager/DocumentTypesScreen.kt) |
+| **OpenID4VCI v1.0** | Standard credential offer protocol with QR code scanning | Authorization Code Flow, Pre-authorization Flow, DPoP JWT, Batch issuance, Deferred issuance | ✅ [`OfferReviewScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/openid4vci/OfferReviewScreen.kt) |
+
+### Document Presentation Methods
+
+| Method | Protocol | Features | Implementation |
+|--------|----------|----------|----------------|
+| **Proximity** | ISO 18013-5 over BLE | Device engagement via QR/NFC, BLE peripheral/central mode, Selective disclosure | ✅ [`ProximityPresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/proximity/ProximityPresentationScreen.kt) |
+| **Remote** | OpenID4VP 1.0 over HTTPS | Client ID schemes (preregistered, x509_san_dns, x509_hash, redirect_uri), DCQL support | ✅ [`RemotePresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/remote/RemotePresentationScreen.kt) |
+| **DCAPI** | ISO/IEC TS 18013-7:2025 (org-iso-mdoc) | Browser-initiated requests, System credential picker integration | ✅ [`DCAPIPresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/dcapi/DCAPIPresentationScreen.kt) |
+
+### Document Management
+
+| Feature | Description | Details |
+|---------|-------------|---------|
+| **List Documents** | Display all issued credentials | Filter by type, format, or custom predicate |
+| **View Details** | Show document claims and metadata | Access namespaces, claims, format info, security properties |
+| **Delete Documents** | Remove credentials from wallet | Secure deletion with Keystore key removal |
+| **Batch Credentials** | Multiple credentials per document | Support for credential rotation and one-time use policies |
+| **Secure Storage** | Android Keystore-backed encryption | StrongBox support, user authentication options |
+
+## Technology Stack
+
+- **SDK**: Scytales MID SDK 2.0.0-SNAPSHOT
+- **Language**: Kotlin 2.2.21
+- **UI**: Jetpack Compose with Material Design 3
+- **Architecture**: MVVM with Clean Architecture principles
+- **Min SDK**: 28 (Android 9.0)
 - **Target SDK**: 36
-- **JVM Target**: 11
 
-### Key Dependencies
-
-- Scytales MID SDK 2.0.0-SNAPSHOT
-- AndroidX Core KTX 1.17.0
-- Jetpack Compose BOM 2024.09.00
-- Material3 Adaptive Navigation Suite
-- Lifecycle Runtime KTX 2.9.4
-
-## 🚀 Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Android Studio Ladybug or later
-- JDK 11 or later
-- Android SDK with API level 28+
-- Gradle 8.13.1+
+- JDK 11+
+- Android device or emulator (API 28+)
+- Scytales SDK license key
 
 ### Setup
 
-1. **Clone the repository**
-   ```powershell
+1. **Clone and open the project**
+   ```bash
    git clone <repository-url>
    cd scytales-app-android-mid-sdk-example
    ```
 
-2. **Open in Android Studio**
-   - Open the project in Android Studio
-   - Wait for Gradle sync to complete
-
-3. **Configure Scytales SDK** (if needed)
-   - Add SDK credentials/configuration as per SDK documentation
-   - Update `local.properties` with any required keys
-
-4. **Build and Run**
-   ```powershell
-   # Build the project
-   ./gradlew build
+2. **Configure SDK** (Mandatory)
    
-   # Install on connected device/emulator
+   Edit [`SdkConfig.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/sdk/SdkConfig.kt):
+   ```kotlin
+   object SdkConfig {
+       val licenseKey: String = "your-license-key-here" // Mandatory
+       val organizationUrl: String = "https://your-scytales-manager.url" // Mandatory
+   }
+   ```
+
+3. **Build and run**
+   ```bash
    ./gradlew installDebug
    ```
 
-## 📂 Project Structure
+### First Steps
+
+After installation, the app will:
+1. Initialize the SDK with your license
+2. Display the home screen (empty initially)
+3. Allow you to add documents via the + button
+
+See the [Getting Started Guide](docs/getting-started/initialization.md) for detailed configuration options.
+
+## Project Structure
 
 ```
-app/
-├── src/
-│   ├── main/
-│   │   ├── java/com/scytales/mid/sdk/example/app/
-│   │   │   ├── MainActivity.kt              # Main entry point
-│   │   │   ├── ui/
-│   │   │   │   ├── theme/                   # App theming
-│   │   │   │   ├── screens/                 # Screen composables
-│   │   │   │   └── components/              # Reusable components
-│   │   │   ├── data/                        # Data layer
-│   │   │   ├── domain/                      # Business logic
-│   │   │   └── util/                        # Utilities
-│   │   ├── res/                             # Resources
-│   │   └── AndroidManifest.xml
-│   ├── test/                                # Unit tests
-│   └── androidTest/                         # Instrumented tests
-└── build.gradle.kts                         # App-level build config
+app/src/main/java/com/scytales/mid/sdk/example/app/
+├── MainActivity.kt              # Navigation coordinator
+├── ScytalesApp.kt              # Application class with SDK init
+├── sdk/                        # SDK initialization
+│   ├── ScytalesSdkInitializer.kt
+│   ├── SdkConfig.kt
+│   └── SdkState.kt
+├── ui/screens/                 # Feature screens
+│   ├── home/                   # Document list
+│   ├── manager/                # Scytales Manager issuance
+│   ├── openid4vci/             # OpenID4VCI issuance
+│   ├── proximity/              # BLE presentation
+│   ├── remote/                 # OpenID4VP presentation
+│   ├── dcapi/                  # Browser presentation
+│   └── documentdetails/        # Document viewer
+└── openid4vci/                 # OpenID4VCI coordinator
 ```
 
-## 🤖 GitHub Copilot Agent Configuration
+## Documentation
 
-This project includes a specialized **Android Developer Agent** configuration for GitHub Copilot to assist with development tasks.
+### Integration Guides
 
-### Agent Files
+- [**Installation**](docs/getting-started/installation.md) - Add SDK to your project
+- [**Configuration**](docs/getting-started/configuration.md) - Configure license and options
+- [**Initialization**](docs/getting-started/initialization.md) - Initialize the SDK
 
-The `.github/` directory contains comprehensive agent configuration:
+### Feature Guides
 
-- **`copilot-instructions.md`**: Detailed development guidelines and best practices
-- **`copilot-agent-config.json`**: Structured agent capabilities and workflows
-- **`ARCHITECTURE.md`**: Architecture patterns and design decisions
-- **`QUICKREF.md`**: Quick reference for common tasks
-- **`README.md`**: Agent usage guide
+- [**Document Issuance**](docs/features/document-issuance.md) - Issue credentials via Scytales Manager and OpenID4VCI
+- [**Document Presentation**](docs/features/document-presentation.md) - Present credentials via Proximity, Remote, and DCAPI
+- [**Document Management**](docs/features/document-management.md) - List, view, and delete documents
 
-### Agent Capabilities
+### Reference
 
-The Android Developer Agent can help you:
+- [**Architecture Overview**](docs/architecture.md) - Application architecture and patterns
+- [**SDK API Reference**](docs/api/index.md) - Complete SDK documentation
 
-- ✅ Create and modify Jetpack Compose UI components
-- ✅ Implement navigation and state management
-- ✅ Integrate Scytales MID SDK features
-- ✅ Write unit and UI tests
-- ✅ Debug Android-specific issues
-- ✅ Manage Gradle dependencies
-- ✅ Implement Material3 design patterns
-- ✅ Optimize performance and memory usage
-- ✅ Follow Android security best practices
-- ✅ Create responsive layouts for all screen sizes
+## Requirements
 
-### Using the Agent
+- **Android Studio**: Ladybug or later
+- **JDK**: 11 or higher
+- **Min SDK**: 28 (Android 9.0)
+- **Target SDK**: 36
+- **Kotlin**: 2.2.21
 
-Simply ask GitHub Copilot for help with Android development tasks:
+## License
 
-```
-"Create a login screen with Material3 components"
-"Add a ViewModel for managing user state"
-"Integrate the Scytales SDK authentication feature"
-"Write UI tests for the home screen"
-```
+This example application is provided for demonstration purposes. See license file for details.
 
-See [`.github/README.md`](.github/README.md) for detailed usage instructions.
+## Support
 
-## 🏗️ Architecture
-
-This project follows **Clean Architecture** principles with **MVVM** pattern:
-
-- **Presentation Layer**: Composables and ViewModels for UI
-- **Domain Layer**: Use cases and business logic
-- **Data Layer**: Repositories and data sources
-
-See [`.github/ARCHITECTURE.md`](.github/ARCHITECTURE.md) for detailed architecture documentation.
-
-## 🎨 Features
-
-### Current Implementation
-
-- ✅ Material Design 3 theming
-- ✅ Adaptive navigation (bottom bar, rail, drawer)
-- ✅ Edge-to-edge display
-- ✅ Multiple navigation destinations
-- ✅ Responsive UI for different screen sizes
-- ✅ Preview support for all composables
-
-### Planned Features
-
-- ⏳ Scytales SDK authentication
-- ⏳ User profile management
-- ⏳ Secure data storage
-- ⏳ Offline support
-- ⏳ Push notifications
-- ⏳ Biometric authentication
-
-## 🧪 Testing
-
-### Running Tests
-
-```powershell
-# Run unit tests
-./gradlew test
-
-# Run instrumented tests
-./gradlew connectedAndroidTest
-
-# Generate test coverage report
-./gradlew jacocoTestReport
-```
-
-### Test Structure
-
-- **Unit Tests**: Business logic, ViewModels, Use Cases
-- **Integration Tests**: Repository and data layer
-- **UI Tests**: Composable rendering and interactions
-
-## 📋 Development Workflow
-
-### Adding a New Feature
-
-1. **Create the UI** - Design composable components
-2. **Implement ViewModel** - Handle state and events
-3. **Add Use Cases** - Implement business logic
-4. **Create Repository** - Manage data access
-5. **Write Tests** - Unit and UI tests
-6. **Update Navigation** - Add to navigation structure
-
-See [`.github/QUICKREF.md`](.github/QUICKREF.md) for quick reference.
-
-## 🔧 Common Tasks
-
-### Adding a Gradle Dependency
-
-1. Add version to `gradle/libs.versions.toml`
-2. Define library in `[libraries]` section
-3. Add to `app/build.gradle.kts`
-4. Sync Gradle
-
-### Creating a New Screen
-
-1. Create composable in `ui/screens/`
-2. Add to `AppDestinations` enum
-3. Update navigation logic
-4. Add ViewModel if needed
-5. Write tests
-
-### Debugging
-
-- Use Logcat: `adb logcat -s YourTag`
-- Use Android Studio Debugger
-- Check Layout Inspector for UI issues
-- Profile with Android Profiler
-
-## 📚 Documentation
-
-- [Architecture Guide](.github/ARCHITECTURE.md) - Detailed architecture documentation
-- [Quick Reference](.github/QUICKREF.md) - Common tasks and patterns
-- [Agent Guide](.github/README.md) - GitHub Copilot agent usage
-- [Coding Instructions](.github/copilot-instructions.md) - Development guidelines
-
-## 🤝 Contributing
-
-### Code Style
-
-- Follow Kotlin coding conventions
-- Use 4-space indentation
-- Keep lines under 120 characters
-- Use meaningful names
-- Write self-documenting code
-
-### Commit Messages
-
-Use conventional commit format:
-- `feat:` New features
-- `fix:` Bug fixes
-- `refactor:` Code refactoring
-- `test:` Test additions/modifications
-- `docs:` Documentation changes
-- `chore:` Build/tooling changes
-
-## 🔒 Security
-
-- Never commit sensitive data (API keys, secrets)
-- Use Android Keystore for secure storage
-- Follow OWASP Mobile Security guidelines
-- Keep dependencies updated
-- Implement certificate pinning for production
-
-## 📄 License
-
-[Add your license information here]
-
-## 📞 Support
-
-For issues with:
-- **The app**: Create an issue in this repository
-- **Scytales SDK**: Refer to SDK documentation or contact Scytales support
-- **Android development**: Check [Android Developer Documentation](https://developer.android.com)
-
-## 🙏 Acknowledgments
-
-- Built with [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- Powered by [Scytales MID SDK](https://scytales.com)
-- Follows [Material Design 3](https://m3.material.io/) guidelines
+- **Documentation**: See the [`docs/`](docs/) folder
+- **SDK Reference**: Browse the [SDK API documentation](docs/api/index.md)
+- **Scytales Support**: Contact Scytales for SDK-specific questions
 
 ---
 
-**Note**: This is an example application for demonstration purposes. Adapt it to your specific needs and requirements.
+**Built with** [Jetpack Compose](https://developer.android.com/jetpack/compose) • **Powered by** [Scytales MID SDK](https://scytales.com)
 

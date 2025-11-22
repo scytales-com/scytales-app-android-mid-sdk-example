@@ -16,7 +16,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
+        maven {
+            url = uri("https://dl.cloudsmith.io/basic/scytales/scytales/maven/")
+            credentials {
+                username = providers.gradleProperty("repositoryUser").orNull
+                password = providers.gradleProperty("repositoryPassword").orNull
+            }
+        }
     }
 }
 
