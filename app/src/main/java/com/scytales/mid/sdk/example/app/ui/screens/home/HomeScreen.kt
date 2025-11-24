@@ -34,6 +34,7 @@ fun HomeScreen(
     onNavigateToDocuments: () -> Unit,
     onNavigateToProximity: () -> Unit,
     onNavigateToRemote: () -> Unit,
+    onNavigateToDCAPI: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -118,17 +119,20 @@ fun HomeScreen(
             }
 
             // DCAPI Status
-            val dcapiStatus = when (state) {
+            val dcapiStatusTxt = when (state) {
                 HomeState.DcapiEnabled -> "W3C DCAPI - Annex C: Enabled"
                 HomeState.DcapiDisabled -> "W3C DCAPI - Annex C: Disabled"
             }
 
+            // DCAPI Presentation Button
+            val isDcapiButtonEnabled = state == HomeState.DcapiEnabled
+
             Button(
-                onClick = { /* Show info dialog */ },
+                onClick = onNavigateToDCAPI,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = false
+                enabled = isDcapiButtonEnabled
             ) {
-                Text(dcapiStatus)
+                Text(dcapiStatusTxt)
             }
         }
     }
@@ -143,7 +147,8 @@ private fun HomeScreenPreview() {
             onNavigateToOpenId4Vci = {},
             onNavigateToDocuments = {},
             onNavigateToProximity = {},
-            onNavigateToRemote = {}
+            onNavigateToRemote = {},
+            onNavigateToDCAPI = {}
         )
     }
 }
