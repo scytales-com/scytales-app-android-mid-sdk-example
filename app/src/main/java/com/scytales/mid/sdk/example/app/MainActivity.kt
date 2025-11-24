@@ -2,6 +2,7 @@ package com.scytales.mid.sdk.example.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -14,6 +15,7 @@ import androidx.compose.runtime.remember
 import com.scytales.mid.sdk.example.app.ui.screens.home.HomeScreen
 import com.scytales.mid.sdk.example.app.ui.screens.manager.DocumentTypesScreen
 import com.scytales.mid.sdk.example.app.ui.theme.ScytalesappandroidmidsdkexampleTheme
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity() {
 
@@ -151,7 +153,8 @@ fun ScytalesappandroidmidsdkexampleApp(
                 onNavigateToOpenId4Vci = { navigateTo(Screen.QRScanner) },
                 onNavigateToDocuments = { navigateTo(Screen.DocumentList) },
                 onNavigateToProximity = { navigateTo(Screen.ProximityPresentation) },
-                onNavigateToRemote = { navigateTo(Screen.RemoteQRScanner) }
+                onNavigateToRemote = { navigateTo(Screen.RemoteQRScanner) },
+                onNavigateToDCAPI = { navigateTo(Screen.DCAPIQRScanner) }
             )
         }
 
@@ -252,6 +255,61 @@ fun ScytalesappandroidmidsdkexampleApp(
             )
         }
 
+        is Screen.DCAPIQRScanner -> {
+            com.scytales.mid.sdk.example.app.ui.screens.common.QRScannerScreen(
+                title = "Scan DCAPI Request",
+                instructions = "Point camera at DCAPI request QR code",
+                onNavigateBack = { navigateBack() },
+                onQrCodeScanned = { uri ->
+                    // Try with Google Play Services (WebAuthn/caBLE capable)
+                    if (activity.tryStart(Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+                            setPackage("com.google.android.gms")
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        })) {
+                        android.util.Log.d(
+                            "ScytalesApp", "Opened DCAPI request with Google Play Services"
+                        )
+                    }
+
+                    // Try with Chrome
+                    else if (activity.tryStart(Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+                            setPackage("com.android.chrome")
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        })) {
+                        android.util.Log.d("ScytalesApp", "Opened DCAPI request with Chrome")
+                    }
+
+                    // Try with any capable handler
+                    else if (activity.tryStart(Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        })) {
+                        android.util.Log.d(
+                            "ScytalesApp",
+                            "Opened DCAPI request with default handler"
+                        )
+                    }
+
+                    // No handler found
+                    else {
+                        Toast.makeText(
+                            activity,
+                            "No app available to open DCAPI request",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        android.util.Log.e(
+                            "ScytalesApp",
+                            "No app available to open DCAPI request URI: $uri"
+                        )
+                    }
+                    navigateBack()
+                },
+                uriValidator = { uri ->
+                    // DCAPI request URIs typically start with "FIDO:/"
+                    uri.startsWith("FIDO:/")
+                }
+            )
+        }
+
         is Screen.DCAPIPresentation -> {
             val screenData = currentScreen as Screen.DCAPIPresentation
 
@@ -279,9 +337,26 @@ sealed class Screen {
         val offerUri: String? = null,
         val authorizationUri: android.net.Uri? = null
     ) : Screen()
+
     data class DocumentDetails(val documentId: String) : Screen()
     data object ProximityPresentation : Screen()
     data object RemoteQRScanner : Screen()
     data class RemotePresentation(val requestUri: String) : Screen()
+    data object DCAPIQRScanner : Screen()
     data class DCAPIPresentation(val intent: Intent) : Screen()
+}
+
+/**
+ * Safely attempts to start an activity using the provided intent.
+ *
+ * @param intent The [Intent] to start. * @return `true` if the activity was successfully started, `false` otherwise.
+ */
+private fun ComponentActivity.tryStart(intent: Intent): Boolean {
+    return runCatching {
+        startActivity(intent)
+        true
+    }.getOrElse {
+        android.util.Log.e("ScytalesApp", "No activity found to handle intent: $intent", it)
+        false
+    }
 }
