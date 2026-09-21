@@ -605,7 +605,7 @@ This example application focuses on demonstrating SDK integration patterns. For 
 ```kotlin
 dependencies {
     // Scytales MID SDK
-    implementation("com.scytales:mid-sdk:2.1.0-dev.27")
+    implementation("com.scytales:scy-mid-sdk:2.1.0")
     
     // AndroidX Core
     implementation("androidx.core:core-ktx")
@@ -681,7 +681,9 @@ android {
 - [Document Issuance Guide](features/document-issuance.md)
 - [Document Presentation Guide](features/document-presentation.md)
 - [Document Management Guide](features/document-management.md)
-- [SDK API Reference](api/index.md)
+- [SDK Initialization](features/initialization.md)
+- [FaceTec Biometric Verification](features/facetec.md)
+- [Downloading SDK Dependencies](features/dependencies.md)
 
 ### External References
 - [Jetpack Compose Documentation](https://developer.android.com/jetpack/compose)
@@ -692,5 +694,5 @@ android {
 ---
 
 **Last Updated**: 2025-01-21  
-**Version**: 2.1.0-dev.27
+**Version**: 2.1.0
 

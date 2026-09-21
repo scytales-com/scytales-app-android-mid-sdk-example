@@ -718,5 +718,5 @@ when (event) {
 - [**ProximityPresentationScreen.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/proximity/ProximityPresentationScreen.kt) - Proximity UI implementation
 - [**RemotePresentationScreen.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/remote/RemotePresentationScreen.kt) - Remote UI implementation
 - [**DCAPIPresentationScreen.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/dcapi/DCAPIPresentationScreen.kt) - DCAPI UI implementation
-- [**SDK API Documentation**](../api/index.md) - Complete SDK reference
+- [**SDK Initialization**](initialization.md) - Configure and start the SDK
 

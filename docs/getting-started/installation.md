@@ -50,13 +50,13 @@ Add the SDK version to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-scytales-mid-sdk = "2.1.0-dev.27"
+scytales-mid-sdk = "2.1.0"
 
 [libraries]
-scytales-mid-sdk = { module = "com.scytales:mid-sdk", version.ref = "scytales-mid-sdk" }
+scytales-mid-sdk = { module = "com.scytales:scy-mid-sdk", version.ref = "scytales-mid-sdk" }
 ```
 
-### Step 3: Add SDK Dependency
+### Step 4: Add SDK Dependency
 
 Add the SDK to your app's `build.gradle.kts`:
 
@@ -69,7 +69,29 @@ dependencies {
 }
 ```
 
-### Step 4: Configure Build Features
+#### Optional: FaceTec biometric verification
+
+FaceTec is **not** a transitive dependency of the SDK. Add it only if your issuer's
+signup flow includes a face-scan or ID-scan step:
+
+```toml
+# gradle/libs.versions.toml
+[versions]
+facetec-sdk = "9.7.136"
+
+[libraries]
+facetec-sdk = { module = "com.facetec:facetec-sdk", version.ref = "facetec-sdk" }
+```
+
+```kotlin
+// app/build.gradle.kts
+implementation(libs.facetec.sdk) { artifact { type = "aar" } }
+```
+
+The `artifact { type = "aar" }` clause is required — the artifact is published as an AAR.
+See [FaceTec Biometric Verification](../features/facetec.md) for keys and setup.
+
+### Step 5: Configure Build Features
 
 Enable required build features in `build.gradle.kts`:
 
@@ -142,6 +164,7 @@ If imports resolve successfully, the SDK is installed correctly.
 
 - [**Configuration**](configuration.md) - Configure the SDK license and options
 - [**Initialization**](initialization.md) - Initialize the SDK in your application
+- [**Downloading SDK Dependencies**](../features/dependencies.md) - Credentials, CI setup and resolution troubleshooting
 
 ## Troubleshooting
 

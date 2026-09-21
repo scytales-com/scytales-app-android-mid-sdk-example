@@ -682,5 +682,5 @@ fun HomeScreen(viewModel: HomeViewModel) {
 - [**DocumentDetailsScreen.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/documentdetails/DocumentDetailsScreen.kt) - Document details implementation
 - [**HomeViewModel.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/home/HomeViewModel.kt) - Document list logic
 - [**DocumentDetailsViewModel.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/documentdetails/DocumentDetailsViewModel.kt) - Document details logic
-- [**SDK API Documentation**](../api/index.md) - Complete SDK reference
+- [**SDK Initialization**](initialization.md) - Configure and start the SDK
 

@@ -11,7 +11,7 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 - Managing multiple document types and credentials
 - Biometric enrollment and authentication
 
-**SDK Version:** 2.1.0-dev.27
+**SDK Version:** 2.1.0
 
 ## Features
 
@@ -49,7 +49,7 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 
 ## Technology Stack
 
-- **SDK**: Scytales MID SDK 2.1.0-dev.27
+- **SDK**: Scytales MID SDK 2.1.0
 - **Language**: Kotlin 2.2.21
 - **UI**: Jetpack Compose with Material Design 3
 - **Architecture**: MVVM with Clean Architecture principles
@@ -64,6 +64,7 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 - JDK 11+
 - Android device or emulator (API 28+)
 - Scytales SDK license key
+- Cloudsmith repository credentials (username + API key, issued by Scytales)
 
 ### Setup
 
@@ -73,7 +74,19 @@ This example application showcases how to integrate the Scytales MID SDK to buil
    cd scytales-app-android-mid-sdk-example
    ```
 
-2. **Configure SDK** (Mandatory)
+2. **Add repository credentials** (Mandatory)
+
+   The SDK and FaceTec resolve from the Scytales Cloudsmith feed. Add your credentials to
+   `~/.gradle/gradle.properties` — outside the repository, so they are never committed:
+   ```properties
+   repositoryUser=YOUR-USER-NAME
+   repositoryPassword=YOUR-API-KEY
+   ```
+
+   See [Downloading SDK Dependencies](docs/features/dependencies.md) for CI setup and
+   troubleshooting.
+
+3. **Configure SDK** (Mandatory)
    
    Edit [`SdkConfig.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/sdk/SdkConfig.kt):
    ```kotlin
@@ -91,8 +104,9 @@ This example application showcases how to integrate the Scytales MID SDK to buil
    FaceTec is configured only when both keys are set. Without them the face and ID scan steps
    fail while OpenID Connect, form and sample-data steps work unchanged. The keys are issued by
    Scytales, and `com.facetec:facetec-sdk` must stay declared in `app/build.gradle.kts`.
+   See [FaceTec Biometric Verification](docs/features/facetec.md).
 
-3. **Build and run**
+4. **Build and run**
    ```bash
    ./gradlew installDebug
    ```
@@ -140,11 +154,13 @@ app/src/main/java/com/scytales/mid/sdk/example/app/
 - [**Document Issuance**](docs/features/document-issuance.md) - Issue credentials via Scytales Manager and OpenID4VCI
 - [**Document Presentation**](docs/features/document-presentation.md) - Present credentials via Proximity, Remote, and DCAPI
 - [**Document Management**](docs/features/document-management.md) - List, view, and delete documents
+- [**Downloading SDK Dependencies**](docs/features/dependencies.md) - Cloudsmith credentials and artifact resolution
+- [**SDK Initialization**](docs/features/initialization.md) - License, wallet, manager and protocol configuration
+- [**FaceTec Biometric Verification**](docs/features/facetec.md) - Optional biometric signup step
 
 ### Reference
 
 - [**Architecture Overview**](docs/architecture.md) - Application architecture and patterns
-- [**SDK API Reference**](docs/api/index.md) - Complete SDK documentation
 
 ## Requirements
 
@@ -161,7 +177,7 @@ This example application is provided for demonstration purposes. See license fil
 ## Support
 
 - **Documentation**: See the [`docs/`](docs/) folder
-- **SDK Reference**: Browse the [SDK API documentation](docs/api/index.md)
+- **SDK Reference**: See the [feature guides](docs/README.md#feature-guides)
 - **Scytales Support**: Contact Scytales for SDK-specific questions
 
 ---
