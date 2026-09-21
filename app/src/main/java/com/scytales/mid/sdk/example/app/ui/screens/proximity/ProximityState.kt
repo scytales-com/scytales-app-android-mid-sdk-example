@@ -1,8 +1,7 @@
 package com.scytales.mid.sdk.example.app.ui.screens.proximity
 
 import android.graphics.Bitmap
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
+import com.scytales.mid.sdk.example.app.presentation.RequestedDocumentInfo
 
 /**
  * Represents the state of proximity presentation
@@ -37,7 +36,7 @@ sealed class ProximityState {
      * Document request received from verifier
      */
     data class RequestReceived(
-        val requestedDocuments: Map<RequestedDocument, IssuedDocument>,
+        val requestedDocuments: List<RequestedDocumentInfo>,
         val verifierName: String? = null
     ) : ProximityState()
 

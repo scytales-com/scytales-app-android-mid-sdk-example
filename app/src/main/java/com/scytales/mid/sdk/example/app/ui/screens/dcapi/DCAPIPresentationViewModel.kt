@@ -4,19 +4,17 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scytales.mid.sdk.example.app.presentation.toRequestedDocuments
 import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer
 import eu.europa.ec.eudi.iso18013.transfer.TransferEvent
-import eu.europa.ec.eudi.iso18013.transfer.response.DisclosedDocument
-import eu.europa.ec.eudi.iso18013.transfer.response.DisclosedDocuments
 import eu.europa.ec.eudi.iso18013.transfer.response.RequestProcessor
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.multipaz.presentment.CredentialPresentmentSelection
 
 /**
  * ViewModel for managing DCAPI (Digital Credentials API) presentation
@@ -43,6 +41,9 @@ class DCAPIPresentationViewModel : ViewModel() {
 
     // Store the processed request to use when user approves
     private var currentProcessedRequest: RequestProcessor.ProcessedRequest.Success? = null
+
+    // The SDK may offer several ways to satisfy the request; this example takes the first.
+    private var currentSelection: CredentialPresentmentSelection? = null
 
     companion object {
         private const val TAG = "DCAPIViewModel"
@@ -102,11 +103,12 @@ class DCAPIPresentationViewModel : ViewModel() {
     /**
      * Approve and send the requested documents
      */
-    fun approveRequest(requestedDocuments: List<RequestedDocument>) {
-        Log.d(TAG, "User approved DCAPI request for ${requestedDocuments.size} documents")
+    fun approveRequest() {
+        Log.d(TAG, "User approved the DCAPI request")
 
         val processedRequest = currentProcessedRequest
-        if (processedRequest == null) {
+        val selection = currentSelection
+        if (processedRequest == null || selection == null) {
             Log.e(TAG, "No processed request available")
             _state.value = DCAPIState.Error(
                 message = "No active request to approve",
@@ -120,15 +122,10 @@ class DCAPIPresentationViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                // Generate response by disclosing all requested items from all requested documents
-                val disclosedDocuments = DisclosedDocuments(requestedDocuments.map {
-                    DisclosedDocument(
-                        documentId = it.documentId,
-                        disclosedItems = it.requestedItems.keys.toList()
-                    )
-                })
-
-                val response = processedRequest.generateResponse(disclosedDocuments).getOrThrow()
+                val response = processedRequest.generateResponse(
+                    selection = selection,
+                    keyUnlockData = emptyMap()
+                ).getOrThrow()
 
                 withContext(Dispatchers.IO) {
                     sdk.sendResponse(response)
@@ -238,30 +235,30 @@ class DCAPIPresentationViewModel : ViewModel() {
     private fun handleRequestReceived(event: TransferEvent.RequestReceived) {
         try {
             val processedRequest = event.processedRequest.getOrThrow()
-            val requestedDocuments = processedRequest.requestedDocuments
 
-            Log.d(TAG, "DCAPI request received for ${requestedDocuments.size} documents")
-
-            // Store the processed request for later use when user approves
-            currentProcessedRequest = processedRequest.getOrThrow()
-
-            // Extract verifier name if available (browser/app name)
-            val verifierName = try {
-                requestedDocuments.firstOrNull()?.readerAuth?.readerCommonName
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not extract verifier name", e)
-                null
+            // Empty means no document in this wallet satisfies the request.
+            val selection = processedRequest.presentmentSelections.firstOrNull()
+            if (selection == null) {
+                Log.w(TAG, "No document in this wallet satisfies the request")
+                _state.value = DCAPIState.Error(
+                    message = "No matching document for this request",
+                    throwable = null,
+                    errorIntent = null
+                )
+                return
             }
 
-            // Map requested documents to issued documents
-            val documents = requestedDocuments.mapNotNull {
-                sdk.getDocumentById(it.documentId) as? IssuedDocument
-            }.associateBy { d ->
-                requestedDocuments.first { d.id == it.documentId }
-            }
+            Log.d(TAG, "DCAPI request received, matching ${selection.matches.size} credentials")
+
+            // Store both for later use when the user approves
+            currentProcessedRequest = processedRequest
+            currentSelection = selection
+
+            // Absent when the reader could not be verified against the trust store.
+            val verifierName = processedRequest.trustMetadata?.displayName
 
             _state.value = DCAPIState.RequestReceived(
-                requestedDocuments = documents,
+                requestedDocuments = selection.toRequestedDocuments(sdk),
                 verifierName = verifierName
             )
 

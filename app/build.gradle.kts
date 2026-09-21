@@ -23,6 +23,7 @@ android {
         manifestPlaceholders["appAuthRedirectScheme"] = "com.scytales"
         manifestPlaceholders["appAuthRedirectHost"] = "wallet"
         manifestPlaceholders["appAuthRedirectPath"] = "/oidc"
+
     }
 
     buildTypes {
@@ -64,6 +65,7 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
 
     implementation(libs.scytales.mid.sdk)
+    implementation(libs.facetec.sdk) { artifact { type = "aar" } }
     implementation(libs.material) // required by mid sdk signup module's XML layouts
 
     // CameraX

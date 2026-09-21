@@ -456,5 +456,5 @@ documents.forEach { document ->
 - [**DocumentTypesScreen.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/manager/DocumentTypesScreen.kt) - Scytales Manager UI
 - [**OfferReviewScreen.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/openid4vci/OfferReviewScreen.kt) - OpenID4VCI UI
 - [**OpenId4VciCoordinator.kt**](../../app/src/main/java/com/scytales/mid/sdk/example/app/openid4vci/OpenId4VciCoordinator.kt) - Flow management
-- [**SDK API Documentation**](../api/index.md) - Complete SDK reference
+- [**SDK Initialization**](initialization.md) - Configure and start the SDK
 

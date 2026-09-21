@@ -39,10 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
-import eu.europa.ec.eudi.wallet.document.format.MsoMdocFormat
-import eu.europa.ec.eudi.wallet.document.format.SdJwtVcFormat
+import com.scytales.mid.sdk.example.app.presentation.RequestedDocumentInfo
 
 /**
  * DCAPI Presentation Screen
@@ -134,7 +131,7 @@ fun DCAPIPresentationScreen(
                         requestedDocuments = currentState.requestedDocuments,
                         verifierName = currentState.verifierName,
                         onApprove = {
-                            viewModel.approveRequest(currentState.requestedDocuments.keys.toList())
+                            viewModel.approveRequest()
                         },
                         onDeny = {
                             viewModel.denyRequest()
@@ -198,7 +195,7 @@ private fun ProcessingContent() {
  */
 @Composable
 private fun RequestReceivedContent(
-    requestedDocuments: Map<RequestedDocument, IssuedDocument>,
+    requestedDocuments: List<RequestedDocumentInfo>,
     verifierName: String?,
     onApprove: () -> Unit,
     onDeny: () -> Unit
@@ -235,11 +232,8 @@ private fun RequestReceivedContent(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(requestedDocuments.toList()) { (requestedDoc, issuedDoc) ->
-                DocumentCard(
-                    requestedDocument = requestedDoc,
-                    issuedDocument = issuedDoc
-                )
+            items(requestedDocuments) { document ->
+                DocumentCard(document = document)
             }
         }
 
@@ -312,10 +306,7 @@ private fun SendingResponseContent() {
  * Card displaying a requested document with its details
  */
 @Composable
-private fun DocumentCard(
-    requestedDocument: RequestedDocument,
-    issuedDocument: IssuedDocument
-) {
+private fun DocumentCard(document: RequestedDocumentInfo) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -325,18 +316,17 @@ private fun DocumentCard(
                 .padding(16.dp)
         ) {
             Text(
-                text = issuedDocument.issuerMetadata?.display?.first()?.name ?: issuedDocument.name,
+                text = document.documentName,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = when (val f = issuedDocument.format) {
-                    is MsoMdocFormat -> f.docType
-                    is SdJwtVcFormat -> f.vct
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            document.claims.forEach { claim ->
+                Text(
+                    text = claim,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

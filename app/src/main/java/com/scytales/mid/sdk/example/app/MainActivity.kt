@@ -17,6 +17,14 @@ import com.scytales.mid.sdk.example.app.ui.screens.manager.DocumentTypesScreen
 import com.scytales.mid.sdk.example.app.ui.theme.ScytalesappandroidmidsdkexampleTheme
 import androidx.core.net.toUri
 
+/** OpenID4VP schemes this app accepts. Also declared in AndroidManifest.xml and `withSchemes(...)`. */
+private val OPENID4VP_SCHEMES = listOf(
+    "mdoc-openid4vp",
+    "eudi-openid4vp",
+    "haip-vp",
+    "av"
+)
+
 class MainActivity : ComponentActivity() {
 
     // State to trigger recomposition when a new intent arrives
@@ -238,10 +246,7 @@ fun ScytalesappandroidmidsdkexampleApp(
                     navigateTo(Screen.RemotePresentation(uri))
                 },
                 uriValidator = { uri ->
-                    // Only accept OpenID4VP verification requests
-                    uri.startsWith("mdoc-openid4vp://") ||
-                    uri.startsWith("openid4vp://") ||
-                    uri.startsWith("openid-vc://")
+                    OPENID4VP_SCHEMES.any { scheme -> uri.startsWith("$scheme://") }
                 }
             )
         }

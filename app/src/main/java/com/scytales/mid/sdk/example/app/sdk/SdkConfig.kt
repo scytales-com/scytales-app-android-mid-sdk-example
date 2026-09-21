@@ -92,6 +92,33 @@ object SdkConfig {
     const val organizationUrl: String = ""
 
     /**
+     * Display name shown for [organizationUrl] (REQUIRED).
+     *
+     * The SDK is configured with a list of organizations, each carrying its own name, so an app
+     * serving several issuers can show which one a document type came from.
+     */
+    const val organizationDisplayName: String = ""
+
+    /**
+     * FaceTec device key identifier (OPTIONAL).
+     *
+     * Needed only for signup flows with a face or ID scan step. Leave blank and those steps fail
+     * with `StepNotConfiguredException`; OIDC, form and sample-data steps are unaffected.
+     *
+     * Obtain both FaceTec keys from Scytales for your `applicationId`. The
+     * `com.facetec:facetec-sdk` dependency in build.gradle.kts is also required, as the SDK does
+     * not bundle it.
+     */
+    const val faceTecDeviceKey: String = ""
+
+    /** FaceTec public face-scan encryption key (OPTIONAL). See [faceTecDeviceKey]. */
+    const val faceTecPublicKey: String = ""
+
+    /** True when both FaceTec keys are set, in which case biometric signup steps are configured. */
+    val isFaceTecConfigured: Boolean
+        get() = faceTecDeviceKey.isNotBlank() && faceTecPublicKey.isNotBlank()
+
+    /**
      * OIDC Redirect URI for signup flow with OpenID Connect (REQUIRED).
      *
      * This URI is used during the OpenID Connect authentication flow to redirect the user

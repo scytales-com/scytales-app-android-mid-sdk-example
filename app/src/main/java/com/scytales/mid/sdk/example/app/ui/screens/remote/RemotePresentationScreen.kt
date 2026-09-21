@@ -40,10 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
-import eu.europa.ec.eudi.wallet.document.format.MsoMdocFormat
-import eu.europa.ec.eudi.wallet.document.format.SdJwtVcFormat
+import com.scytales.mid.sdk.example.app.presentation.RequestedDocumentInfo
 
 /**
  * Remote Presentation Screen (OpenID4VP)
@@ -104,7 +101,7 @@ fun RemotePresentationScreen(
                     RequestReceivedContent(
                         requestedDocuments = currentState.requestedDocuments,
                         verifierName = currentState.verifierName,
-                        onApprove = { viewModel.approveRequest(currentState.requestedDocuments.keys.toList()) },
+                        onApprove = { viewModel.approveRequest() },
                         onDeny = { viewModel.denyRequest() }
                     )
                 }
@@ -200,7 +197,7 @@ private fun ProcessingRequestContent() {
 
 @Composable
 private fun RequestReceivedContent(
-    requestedDocuments: Map<RequestedDocument, IssuedDocument>,
+    requestedDocuments: List<RequestedDocumentInfo>,
     verifierName: String?,
     onApprove: () -> Unit,
     onDeny: () -> Unit
@@ -235,7 +232,7 @@ private fun RequestReceivedContent(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(requestedDocuments.values.toList()) { document ->
+            items(requestedDocuments) { document ->
                 DocumentRequestCard(document = document)
             }
         }
@@ -269,7 +266,7 @@ private fun RequestReceivedContent(
 }
 
 @Composable
-private fun DocumentRequestCard(document: IssuedDocument) {
+private fun DocumentRequestCard(document: RequestedDocumentInfo) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -279,18 +276,17 @@ private fun DocumentRequestCard(document: IssuedDocument) {
                 .padding(16.dp)
         ) {
             Text(
-                text = document.issuerMetadata?.display?.first()?.name ?: document.name,
+                text = document.documentName,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = when (val f = document.format) {
-                    is MsoMdocFormat -> f.docType
-                    is SdJwtVcFormat -> f.vct
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            document.claims.forEach { claim ->
+                Text(
+                    text = claim,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

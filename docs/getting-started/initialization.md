@@ -573,7 +573,7 @@ initialization calls are safe.
 - [**ScytalesSdkInitializer.kt**][init-kt] - Full initializer implementation
 - [**ScytalesApp.kt**][app-kt] - Application class example
 - [**SdkState.kt**][state-kt] - State representation
-- [**SDK API Documentation**](../api/index.md) - Complete SDK reference
+- [**SDK Initialization**](../features/initialization.md) - Initialization reference, protocols and troubleshooting
 
 [init-kt]: ../../app/src/main/java/com/scytales/mid/sdk/example/app/sdk/ScytalesSdkInitializer.kt
 [app-kt]: ../../app/src/main/java/com/scytales/mid/sdk/example/app/ScytalesApp.kt

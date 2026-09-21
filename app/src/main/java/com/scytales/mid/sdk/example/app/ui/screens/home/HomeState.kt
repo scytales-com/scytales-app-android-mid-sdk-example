@@ -45,7 +45,7 @@ suspend fun IssuedDocument.toDocumentItem(): DocumentItem {
 
     return DocumentItem(
         id = this.id,
-        name = this.issuerMetadata?.display?.first()?.name ?: formatInfo.second,
+        name = this.issuerMetadata?.display?.firstOrNull()?.name ?: formatInfo.second,
         docType = formatInfo.second,
         format = formatInfo.first,
         createdAt = this.createdAt,

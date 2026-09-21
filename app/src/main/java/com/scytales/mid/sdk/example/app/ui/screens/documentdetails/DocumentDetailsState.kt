@@ -60,7 +60,11 @@ suspend fun IssuedDocument.toDocumentDetails(): DocumentDetails {
     // Extract claims from the document's credentials
     val claims = mutableMapOf<String, Any>()
     data.claims.forEach {
-        val name = it.issuerMetadata?.display?.first()?.name ?: it.identifier
+        val claimName = when (it) {
+            is MsoMdocClaim -> it.dataElementName
+            is SdJwtVcClaim -> it.claimName ?: it.pathElement.toString()
+        }
+        val name = it.issuerMetadata?.display?.firstOrNull()?.name ?: claimName
         claims[name] = when (it) {
             is MsoMdocClaim -> {
                 Cbor.toDiagnostics(

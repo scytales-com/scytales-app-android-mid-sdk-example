@@ -3,6 +3,7 @@ package com.scytales.mid.sdk.example.app.sdk
 import android.content.Context
 import android.util.Log
 import androidx.core.net.toUri
+import com.nimbusds.jose.jwk.Curve
 import com.scytales.mid.sdk.Sdk
 import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer.getSdk
 import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer.getState
@@ -11,6 +12,12 @@ import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer.isInitialized
 import com.scytales.mid.sdk.example.app.sdk.error.SdkInitializationError
 import com.scytales.mid.sdk.license.LicenseConfig
 import com.scytales.mid.sdk.manager.Organization
+import eu.europa.ec.eudi.openid4vci.CredentialResponseEncryptionPolicy
+import eu.europa.ec.eudi.openid4vci.EcConfig
+import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
+import eu.europa.ec.eudi.openid4vci.RsaConfig
+import eu.europa.ec.eudi.wallet.dcapi.DCAPIProtocol
+import eu.europa.ec.eudi.wallet.issue.openid4vci.OpenId4VciManager
 import eu.europa.ec.eudi.wallet.logging.Logger
 import eu.europa.ec.eudi.wallet.transfer.openId4vp.ClientIdScheme
 import eu.europa.ec.eudi.wallet.transfer.openId4vp.Format
@@ -212,7 +219,7 @@ object ScytalesSdkInitializer {
             return@withLock Result.failure(error)
         }
 
-        Log.d(TAG, "License key: configured")
+        Log.d(TAG, "License: configured")
         Log.d(TAG, "Organization: ${SdkConfig.organizationUrl}")
 
         try {
@@ -249,9 +256,20 @@ object ScytalesSdkInitializer {
                             useStrongBoxForKeys = true
                         )
                         configureOpenId4Vci {
-                            withIssuerUrl("https://dev.issuer-backend.eudiw.dev")
-                            withClientId("wallet-dev")
+                            // The issuer comes from the credential offer.
+                            withClientAuthenticationType(
+                                OpenId4VciManager.ClientAuthenticationType.None("wallet-dev")
+                            )
                             withAuthFlowRedirectionURI("eudi-openid4ci://authorize")
+                            // SUPPORTED: also accept issuers that cannot encrypt the response.
+                            withResponseEncryptionConfig(
+                                EncryptionSupportConfig(
+                                    credentialResponseEncryptionPolicy =
+                                        CredentialResponseEncryptionPolicy.SUPPORTED,
+                                    ecConfig = EcConfig(ecKeyCurve = Curve.P_256),
+                                    rsaConfig = RsaConfig(rcaKeySize = 2048)
+                                )
+                            )
                         }
 
                         // Configure proximity presentation (BLE + QR)
@@ -267,7 +285,13 @@ object ScytalesSdkInitializer {
                             nfcEngagementServiceClass = null
                         )
                         configureOpenId4Vp {
-                            withSchemes("mdoc-openid4vp")
+                            // Keep in step with AndroidManifest.xml and OPENID4VP_SCHEMES.
+                            withSchemes(
+                                "mdoc-openid4vp",
+                                "eudi-openid4vp",
+                                "haip-vp",
+                                "av"
+                            )
                             withFormats(Format.SdJwtVc.ES256, Format.MsoMdoc.ES256)
                             withClientIdSchemes(
                                 ClientIdScheme.RedirectUri,
@@ -280,6 +304,8 @@ object ScytalesSdkInitializer {
                         Log.d(TAG, "Enabling DCAPI (Digital Credentials API)...")
                         configureDCAPI {
                             withEnabled(true)
+                            // Required when enabled: an empty protocol set is rejected.
+                            withSupportedProtocols(DCAPIProtocol.ISO_MDOC)
                         }
                     }
 
@@ -287,11 +313,23 @@ object ScytalesSdkInitializer {
 
                     manager {
                         Log.d(TAG, "Configuring Scytales manager...")
-                        organization = Organization.url(SdkConfig.organizationUrl)
+                        organizations = listOf(
+                            Organization(
+                                SdkConfig.organizationDisplayName,
+                                SdkConfig.organizationUrl
+                            )
+                        )
                         signup {
-
                             openIdConnect {
                                 redirectUri = SdkConfig.singupOidcRedirectUri.toUri()
+                            }
+                            // Only when keys are configured; face and ID scan steps need it.
+                            if (SdkConfig.isFaceTecConfigured) {
+                                Log.d(TAG, "Configuring FaceTec...")
+                                facetec {
+                                    deviceKeyIdentifier = SdkConfig.faceTecDeviceKey
+                                    publicFaceScanEncryptionKey = SdkConfig.faceTecPublicKey
+                                }
                             }
                         }
                     }
