@@ -1,8 +1,7 @@
 package com.scytales.mid.sdk.example.app.ui.screens.dcapi
 
 import android.content.Intent
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
+import com.scytales.mid.sdk.example.app.presentation.RequestedDocumentInfo
 
 /**
  * Represents the state of DCAPI (Digital Credentials API) presentation flow
@@ -21,11 +20,11 @@ sealed class DCAPIState {
     /**
      * Request received and processed - waiting for user decision
      *
-     * @property requestedDocuments Map of requested documents to issued documents
+     * @property requestedDocuments The documents and claims the verifier asked for
      * @property verifierName Optional name of the verifier/browser
      */
     data class RequestReceived(
-        val requestedDocuments: Map<RequestedDocument, IssuedDocument>,
+        val requestedDocuments: List<RequestedDocumentInfo>,
         val verifierName: String? = null
     ) : DCAPIState()
 

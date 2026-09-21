@@ -46,10 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
-import eu.europa.ec.eudi.wallet.document.format.MsoMdocFormat
-import eu.europa.ec.eudi.wallet.document.format.SdJwtVcFormat
+import com.scytales.mid.sdk.example.app.presentation.RequestedDocumentInfo
 
 /**
  * Proximity Presentation Screen
@@ -154,7 +151,7 @@ fun ProximityPresentationScreen(
                     RequestReceivedContent(
                         requestedDocuments = currentState.requestedDocuments,
                         verifierName = currentState.verifierName,
-                        onApprove = { viewModel.approveRequest(currentState.requestedDocuments.keys.toList()) },
+                        onApprove = { viewModel.approveRequest() },
                         onDeny = { viewModel.denyRequest() }
                     )
                 }
@@ -379,7 +376,7 @@ private fun ConnectedContent() {
 
 @Composable
 private fun RequestReceivedContent(
-    requestedDocuments: Map<RequestedDocument, IssuedDocument>,
+    requestedDocuments: List<RequestedDocumentInfo>,
     verifierName: String?,
     onApprove: () -> Unit,
     onDeny: () -> Unit
@@ -414,7 +411,7 @@ private fun RequestReceivedContent(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(requestedDocuments.values.toList()) {
+            items(requestedDocuments) {
                 DocumentRequestCard(document = it)
             }
         }
@@ -448,7 +445,7 @@ private fun RequestReceivedContent(
 }
 
 @Composable
-private fun DocumentRequestCard(document: IssuedDocument) {
+private fun DocumentRequestCard(document: RequestedDocumentInfo) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -458,18 +455,17 @@ private fun DocumentRequestCard(document: IssuedDocument) {
                 .padding(16.dp)
         ) {
             Text(
-                text = document.issuerMetadata?.display?.first()?.name ?: document.name,
+                text = document.documentName,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = when (val f = document.format) {
-                    is MsoMdocFormat -> f.docType
-                    is SdJwtVcFormat -> f.vct
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            document.claims.forEach { claim ->
+                Text(
+                    text = claim,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

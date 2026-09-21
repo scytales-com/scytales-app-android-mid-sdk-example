@@ -5,19 +5,17 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scytales.mid.sdk.example.app.presentation.toRequestedDocuments
 import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer
 import eu.europa.ec.eudi.iso18013.transfer.TransferEvent
-import eu.europa.ec.eudi.iso18013.transfer.response.DisclosedDocument
-import eu.europa.ec.eudi.iso18013.transfer.response.DisclosedDocuments
 import eu.europa.ec.eudi.iso18013.transfer.response.RequestProcessor
-import eu.europa.ec.eudi.iso18013.transfer.response.RequestedDocument
-import eu.europa.ec.eudi.wallet.document.IssuedDocument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.multipaz.presentment.CredentialPresentmentSelection
 
 /**
  * ViewModel for Remote Presentation (OpenID4VP) flow
@@ -39,6 +37,9 @@ class RemotePresentationViewModel : ViewModel() {
 
     // Store the processed request to use when user approves
     private var currentProcessedRequest: RequestProcessor.ProcessedRequest.Success? = null
+
+    // The SDK may offer several ways to satisfy the request; this example takes the first.
+    private var currentSelection: CredentialPresentmentSelection? = null
 
     /**
      * Start remote presentation with the given request URI
@@ -97,11 +98,12 @@ class RemotePresentationViewModel : ViewModel() {
     /**
      * Approve and send the requested documents
      */
-    fun approveRequest(requestedDocuments: List<RequestedDocument>) {
-        Log.d(TAG, "User approved request for ${requestedDocuments.size} documents")
+    fun approveRequest() {
+        Log.d(TAG, "User approved the request")
 
         val processedRequest = currentProcessedRequest
-        if (processedRequest == null) {
+        val selection = currentSelection
+        if (processedRequest == null || selection == null) {
             Log.e(TAG, "No processed request available")
             _state.value = RemoteState.Error(
                 message = "No active request to approve",
@@ -115,13 +117,10 @@ class RemotePresentationViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 // Generate response by disclosing all requested items from all requested documents
-                val disclosedDocuments = DisclosedDocuments(requestedDocuments.map {
-                    DisclosedDocument(
-                        documentId = it.documentId,
-                        disclosedItems = it.requestedItems.keys.toList()
-                    )
-                })
-                val response = processedRequest.generateResponse(disclosedDocuments).getOrThrow()
+                val response = processedRequest.generateResponse(
+                    selection = selection,
+                    keyUnlockData = emptyMap()
+                ).getOrThrow()
 
                 withContext(Dispatchers.IO) {
                     sdk.sendResponse(response)
@@ -130,6 +129,7 @@ class RemotePresentationViewModel : ViewModel() {
                 Log.d(TAG, "Response generated and sent after user approval")
                 // Clear the stored request
                 currentProcessedRequest = null
+                currentSelection = null
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to send response", e)
                 _state.value = RemoteState.Error(
@@ -244,31 +244,30 @@ class RemotePresentationViewModel : ViewModel() {
     private fun handleRequestReceived(event: TransferEvent.RequestReceived) {
         try {
             val processedRequest = event.processedRequest.getOrThrow()
-            val requestedDocuments = processedRequest.requestedDocuments
 
-            Log.d(TAG, "Request received for ${requestedDocuments.size} documents")
-
-            // Store the processed request for later use when user approves
-            currentProcessedRequest = processedRequest.getOrThrow()
-
-            // Extract verifier name if available
-            val verifierName = try {
-                requestedDocuments.firstOrNull()?.readerAuth?.readerCommonName
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not extract verifier name", e)
-                null
+            // Empty means no document in this wallet satisfies the request.
+            val selection = processedRequest.presentmentSelections.firstOrNull()
+            if (selection == null) {
+                Log.w(TAG, "No document in this wallet satisfies the request")
+                _state.value = RemoteState.Error(
+                    message = "No matching document for this request",
+                    throwable = null
+                )
+                return
             }
 
-            // Look up the actual IssuedDocument instances from SDK
-            val documents = requestedDocuments.mapNotNull {
-                sdk.getDocumentById(it.documentId) as? IssuedDocument
-            }.associateBy { d ->
-                requestedDocuments.first { d.id == it.documentId }
-            }
+            Log.d(TAG, "Request received, matching ${selection.matches.size} credentials")
+
+            // Store both for later use when the user approves
+            currentProcessedRequest = processedRequest
+            currentSelection = selection
+
+            // Absent when the reader could not be verified against the trust store.
+            val verifierName = processedRequest.trustMetadata?.displayName
 
             // Show the request to user for approval/denial
             _state.value = RemoteState.RequestReceived(
-                requestedDocuments = documents,
+                requestedDocuments = selection.toRequestedDocuments(sdk),
                 verifierName = verifierName
             )
 

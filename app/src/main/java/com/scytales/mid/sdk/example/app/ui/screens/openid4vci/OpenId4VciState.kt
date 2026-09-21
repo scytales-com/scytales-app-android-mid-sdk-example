@@ -35,7 +35,7 @@ fun Offer.toOfferDisplay(): OfferDisplay {
     val documents = this.offeredDocuments.map { it.toOfferedDocumentDisplay() }
 
     return OfferDisplay(
-        issuerName = this.issuerMetadata.display.first().name,
+        issuerName = this.issuerMetadata.display.firstOrNull()?.name.orEmpty(),
         documents = documents,
         requiresTxCode = this.txCodeSpec != null,
         txCodeDescription = this.txCodeSpec?.description
@@ -59,7 +59,7 @@ fun Offer.OfferedDocument.toOfferedDocumentDisplay(): OfferedDocumentDisplay {
     }
 
     return OfferedDocumentDisplay(
-        name = this.configuration.credentialMetadata?.display?.first()?.name ?: format.second,
+        name = this.configuration.credentialMetadata?.display?.firstOrNull()?.name ?: format.second,
         docType = format.second,
         format = format.first
     )

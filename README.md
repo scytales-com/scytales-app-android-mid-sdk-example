@@ -11,7 +11,7 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 - Managing multiple document types and credentials
 - Biometric enrollment and authentication
 
-**SDK Version:** 2.0.0-SNAPSHOT
+**SDK Version:** 2.1.0-dev.27
 
 ## Features
 
@@ -26,15 +26,15 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 
 | Method | Description | Features | Implementation |
 |--------|-------------|----------|----------------|
-| **Scytales Manager** | Direct issuance via organization backend with biometric enrollment | Organization-based issuance, FaceTec biometric verification | ✅ [`DocumentTypesScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/manager/DocumentTypesScreen.kt) |
+| **Scytales Manager** | Direct issuance via organization backend with biometric enrollment | Organization-based issuance, OpenID Connect signup, optional FaceTec biometric verification | ✅ [`DocumentTypesScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/manager/DocumentTypesScreen.kt) |
 | **OpenID4VCI v1.0** | Standard credential offer protocol with QR code scanning | Authorization Code Flow, Pre-authorization Flow, DPoP JWT, Batch issuance, Deferred issuance | ✅ [`OfferReviewScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/openid4vci/OfferReviewScreen.kt) |
 
 ### Document Presentation Methods
 
 | Method | Protocol | Features | Implementation |
 |--------|----------|----------|----------------|
-| **Proximity** | ISO 18013-5 over BLE | Device engagement via QR/NFC, BLE peripheral/central mode, Selective disclosure | ✅ [`ProximityPresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/proximity/ProximityPresentationScreen.kt) |
-| **Remote** | OpenID4VP 1.0 over HTTPS | Client ID schemes (preregistered, x509_san_dns, x509_hash, redirect_uri), DCQL support | ✅ [`RemotePresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/remote/RemotePresentationScreen.kt) |
+| **Proximity** | ISO 18013-5 over BLE | Device engagement via QR, BLE peripheral/central mode | ✅ [`ProximityPresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/proximity/ProximityPresentationScreen.kt) |
+| **Remote** | OpenID4VP 1.0 over HTTPS | Client ID schemes (x509_san_dns, x509_hash, redirect_uri) | ✅ [`RemotePresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/remote/RemotePresentationScreen.kt) |
 | **DCAPI** | ISO/IEC TS 18013-7:2025 (org-iso-mdoc) | Browser-initiated requests, System credential picker integration | ✅ [`DCAPIPresentationScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/dcapi/DCAPIPresentationScreen.kt) |
 
 ### Document Management
@@ -44,12 +44,12 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 | **List Documents** | Display all issued credentials | Filter by type, format, or custom predicate |
 | **View Details** | Show document claims and metadata | Access namespaces, claims, format info, security properties |
 | **Delete Documents** | Remove credentials from wallet | Secure deletion with Keystore key removal |
-| **Batch Credentials** | Multiple credentials per document | Support for credential rotation and one-time use policies |
+| **Batch Credentials** | Multiple credentials per document | This app requests `CredentialPolicy.RotatingBatch(numberOfCredentials = 1)` |
 | **Secure Storage** | Android Keystore-backed encryption | StrongBox support, user authentication options |
 
 ## Technology Stack
 
-- **SDK**: Scytales MID SDK 2.0.0-SNAPSHOT
+- **SDK**: Scytales MID SDK 2.1.0-dev.27
 - **Language**: Kotlin 2.2.21
 - **UI**: Jetpack Compose with Material Design 3
 - **Architecture**: MVVM with Clean Architecture principles
@@ -80,8 +80,17 @@ This example application showcases how to integrate the Scytales MID SDK to buil
    object SdkConfig {
        val licenseKey: String = "your-license-key-here" // Mandatory
        val organizationUrl: String = "https://your-scytales-manager.url" // Mandatory
+       val organizationDisplayName: String = "Your Organization" // Mandatory, shown in the UI
+
+       // Optional: required only for signup flows with a face or ID scan step
+       val faceTecDeviceKey: String = ""
+       val faceTecPublicKey: String = ""
    }
    ```
+
+   FaceTec is configured only when both keys are set. Without them the face and ID scan steps
+   fail while OpenID Connect, form and sample-data steps work unchanged. The keys are issued by
+   Scytales, and `com.facetec:facetec-sdk` must stay declared in `app/build.gradle.kts`.
 
 3. **Build and run**
    ```bash

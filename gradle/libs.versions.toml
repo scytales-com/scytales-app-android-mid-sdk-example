@@ -9,7 +9,8 @@ lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
 composeBom = "2024.09.00"
 
-scytales-mid-sdk = "2.0.0-SNAPSHOT"
+scytales-mid-sdk = "2.1.0-dev.27"
+facetec-sdk = "9.7.136"
 material = "1.13.0"
 cameraX = "1.3.4"
 mlkitBarcodeScanning = "17.3.0"
@@ -34,6 +35,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 
 scytales-mid-sdk = { module = "com.scytales:mid-sdk", version.ref = "scytales-mid-sdk" }
+facetec-sdk = { module = "com.facetec:facetec-sdk", version.ref = "facetec-sdk" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # CameraX

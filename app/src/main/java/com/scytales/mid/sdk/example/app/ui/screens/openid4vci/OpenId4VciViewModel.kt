@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scytales.mid.sdk.example.app.openid4vci.OpenId4VciCoordinator
 import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer
+import eu.europa.ec.eudi.wallet.document.CreateDocumentSettings
 import eu.europa.ec.eudi.wallet.document.DocumentExtensions.getDefaultCreateDocumentSettings
+import eu.europa.ec.eudi.wallet.document.DocumentExtensions.getDefaultCreateKeySettings
 import eu.europa.ec.eudi.wallet.issue.openid4vci.IssueEvent
 import eu.europa.ec.eudi.wallet.issue.openid4vci.Offer
 import eu.europa.ec.eudi.wallet.issue.openid4vci.OfferResult
@@ -123,12 +125,24 @@ class OpenId4VciViewModel(
             }
 
             is IssueEvent.DocumentRequiresCreateSettings -> {
-                val settings = ScytalesSdkInitializer.getSdk().getDefaultCreateDocumentSettings(
-                    offeredDocument = event.offeredDocument,
-                    numberOfCredentials = 1,
-                    credentialPolicy = eu.europa.ec.eudi.wallet.document.CreateDocumentSettings.CredentialPolicy.RotateUse
-                )
-                event.resume(settings)
+                // The issuer either leaves the reuse policy to the wallet or mandates one.
+                when (event) {
+                    is IssueEvent.DocumentRequiresCreateSettings.OptionalReusePolicy -> {
+                        val settings =
+                            ScytalesSdkInitializer.getSdk().getDefaultCreateDocumentSettings(
+                                offeredDocument = event.offeredDocument,
+                                credentialPolicy = CreateDocumentSettings.CredentialPolicy
+                                    .RotatingBatch(numberOfCredentials = 1)
+                            )
+                        event.resume(settings)
+                    }
+
+                    is IssueEvent.DocumentRequiresCreateSettings.MandatoryReusePolicy -> {
+                        val (secureAreaIdentifier, createKeySettings) =
+                            ScytalesSdkInitializer.getSdk().getDefaultCreateKeySettings()
+                        event.resume(secureAreaIdentifier, createKeySettings)
+                    }
+                }
             }
 
             is IssueEvent.DocumentIssued -> {

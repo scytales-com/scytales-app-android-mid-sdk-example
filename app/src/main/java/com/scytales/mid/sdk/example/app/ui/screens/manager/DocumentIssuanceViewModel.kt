@@ -54,9 +54,9 @@ class DocumentIssuanceViewModel : ViewModel() {
                 val result = signupManager.issueDocument(activity, documentType)
 
                 result.fold(
-                    onSuccess = { issuedDocument ->
-                        Log.d(TAG, "Document issued successfully: ${issuedDocument.id}")
-                        _issuanceState.value = IssuanceState.Success(issuedDocument)
+                    onSuccess = { issued ->
+                        Log.d(TAG, "Document issued successfully: ${issued.document.id}")
+                        _issuanceState.value = IssuanceState.Success(issued.document)
                     },
                     onFailure = { error ->
                         Log.e(TAG, "Document issuance failed", error)

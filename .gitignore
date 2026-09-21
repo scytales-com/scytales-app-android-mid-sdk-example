@@ -30,3 +30,7 @@ local.properties
 /.idea/vcs.xml
 /.kotlin/
 /.idea/
+
+# Local test tooling, not part of the example
+/maestro/
+/MIGRATION-NOTES.md

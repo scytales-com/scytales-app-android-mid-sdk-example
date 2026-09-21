@@ -40,30 +40,33 @@ class DocumentTypesViewModel : ViewModel() {
                 // Get SDK instance
                 val sdk = ScytalesSdkInitializer.getSdk()
 
-                // Get available document types
+                // Reports per-organization failures alongside whatever loaded.
                 val result = sdk.getAvailableDocumentTypes()
 
-                result.fold(
-                    onSuccess = { documentTypes ->
-                        Log.d(TAG, "Loaded ${documentTypes.size} document types")
+                result.errors.forEach { (organization, error) ->
+                    Log.e(TAG, "Failed to load templates from ${organization.displayName}", error)
+                }
 
-                        // Map to UI items
-                        val items = documentTypes.map { it.toDocumentTypeItem() }
+                Log.d(TAG, "Loaded ${result.documentTypes.size} document types")
 
-                        // Update state
-                        _state.value = if (items.isEmpty()) {
-                            DocumentTypesState.Empty
-                        } else {
-                            DocumentTypesState.Success(items)
-                        }
-                    },
-                    onFailure = { error ->
-                        Log.e(TAG, "Error loading document types", error)
-                        _state.value = DocumentTypesState.Error(
-                            "Failed to load document types: ${error.message}"
-                        )
-                    }
-                )
+                // Map to UI items
+                val items = result.documentTypes.map { it.toDocumentTypeItem() }
+
+                // Update state
+                _state.value = when {
+                    result.hasNoOrganizations -> DocumentTypesState.Error(
+                        "No organization configured. Add it to SdkConfig.organizationUrl in the code."
+                    )
+
+                    result.isCompleteFailure -> DocumentTypesState.Error(
+                        "Failed to load document types: " +
+                                (result.errors.values.firstOrNull()?.message ?: "Unknown error")
+                    )
+
+                    items.isEmpty() -> DocumentTypesState.Empty
+
+                    else -> DocumentTypesState.Success(items)
+                }
 
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "SDK not initialized", e)

@@ -605,7 +605,7 @@ This example application focuses on demonstrating SDK integration patterns. For 
 ```kotlin
 dependencies {
     // Scytales MID SDK
-    implementation("com.scytales.mid:sdk:2.0.0-SNAPSHOT")
+    implementation("com.scytales:mid-sdk:2.1.0-dev.27")
     
     // AndroidX Core
     implementation("androidx.core:core-ktx")
@@ -692,5 +692,5 @@ android {
 ---
 
 **Last Updated**: 2025-01-21  
-**Version**: 2.0.0-SNAPSHOT
+**Version**: 2.1.0-dev.27
 

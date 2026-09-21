@@ -50,14 +50,14 @@ fun AvailableDocumentType.toDocumentTypeItem(): DocumentTypeItem {
         is SdJwtVcFormat -> Pair("sd-jwt-vc", fmt.vct)
     }
 
-    val displayName = this.template.display.first().name
+    val display = this.template.display.firstOrNull()
 
     return DocumentTypeItem(
         id = docType,
-        name = displayName,
+        name = display?.name ?: docType,
         docType = docType,
         format = formatName,
-        description = this.template.display.first().category?.name,
+        description = display?.category?.name,
         availableDocumentType = this
     )
 }

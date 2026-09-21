@@ -1,5 +1,5 @@
 # Scytales MID SDK Documentation
-- **SDK Version**: 2.0.0-SNAPSHOT
+- **SDK Version**: 2.1.0-dev.27
 - **Source Code**: Browse [`app/src/main/java/`](../app/src/main/java/com/scytales/mid/sdk/example/app/)
 - **Example Application**: See the root [`README.md`](../README.md)
 

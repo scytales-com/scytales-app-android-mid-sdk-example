@@ -50,7 +50,7 @@ Add the SDK version to `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-scytales-mid-sdk = "2.0.0-SNAPSHOT"
+scytales-mid-sdk = "2.1.0-dev.27"
 
 [libraries]
 scytales-mid-sdk = { module = "com.scytales:mid-sdk", version.ref = "scytales-mid-sdk" }

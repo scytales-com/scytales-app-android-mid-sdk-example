@@ -47,16 +47,44 @@
                     android:host="authorize" />
             </intent-filter>
 
-            <!-- Intent filter for OpenID4VP remote presentation -->
+            <!-- Intent filters for OpenID4VP remote presentation. Verifiers differ in the scheme
+                 they put in the QR code, so accept the same set the SDK is configured with in
+                 ScytalesSdkInitializer. mdoc-openid4vp comes from ISO/IEC 18013-7 Annex B and is
+                 the legacy one; eudi-openid4vp and haip-vp are what current verifiers emit. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:scheme="mdoc-openid4vp"
-                    android:host="*" />
+                <data android:scheme="mdoc-openid4vp" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="eudi-openid4vp" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="haip-vp" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="av" />
             </intent-filter>
 
             <!-- Intent filter for DCAPI (Digital Credentials API) -->
