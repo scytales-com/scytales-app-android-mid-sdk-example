@@ -1,6 +1,6 @@
 # Architecture Guide
 
-[Back to Documentation](README.md)
+[Back to README](../README.md)
 
 Comprehensive guide to the application architecture, design patterns, and implementation strategies used in the Scytales MID SDK Android Example application.
 
@@ -94,7 +94,6 @@ val documents = sdk.getDocuments()
 - `licenseKey`: Scytales SDK license key (mandatory)
 - `organizationUrl`: Organization base URL for Scytales Manager API (mandatory)
 - `faceTecDeviceKey`: FaceTec device key for biometric enrollment (optional)
-- `faceTecPublicKey`: FaceTec public encryption key for biometric enrollment (optional)
 - `isFaceTecConfigured`: Computed property indicating if FaceTec is configured
 
 **Example:**
@@ -103,10 +102,9 @@ object SdkConfig {
     const val licenseKey: String = "your-license-key"
     const val organizationUrl: String = "https://your-scytales-manager.url"
     val faceTecDeviceKey: String? = null
-    val faceTecPublicKey: String? = null
     
     val isFaceTecConfigured: Boolean
-        get() = !faceTecDeviceKey.isNullOrBlank() && !faceTecPublicKey.isNullOrBlank()
+        get() = !faceTecDeviceKey.isNullOrBlank()
 }
 ```
 
@@ -605,7 +603,7 @@ This example application focuses on demonstrating SDK integration patterns. For 
 ```kotlin
 dependencies {
     // Scytales MID SDK
-    implementation("com.scytales:scy-mid-sdk:2.1.0")
+    implementation("com.scytales:scy-mid-sdk:3.0.0")
     
     // AndroidX Core
     implementation("androidx.core:core-ktx")
@@ -675,15 +673,7 @@ android {
 ## Resources
 
 ### Documentation
-- [Installation Guide](getting-started/installation.md)
-- [Configuration Guide](getting-started/configuration.md)
-- [Initialization Guide](getting-started/initialization.md)
-- [Document Issuance Guide](features/document-issuance.md)
-- [Document Presentation Guide](features/document-presentation.md)
-- [Document Management Guide](features/document-management.md)
-- [SDK Initialization](features/initialization.md)
-- [FaceTec Biometric Verification](features/facetec.md)
-- [Downloading SDK Dependencies](features/dependencies.md)
+- [Scytales MID SDK for Android](https://docs.scytales.dev/sdks/scytales-wallet-sdk/scytales-mid-sdk-for-android) - integration and feature guides
 
 ### External References
 - [Jetpack Compose Documentation](https://developer.android.com/jetpack/compose)
@@ -693,6 +683,6 @@ android {
 
 ---
 
-**Last Updated**: 2025-01-21  
-**Version**: 2.1.0
+**Last Updated**: 2026-11-24  
+**Version**: 3.0.0
 

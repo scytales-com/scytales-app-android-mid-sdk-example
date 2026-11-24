@@ -2,6 +2,11 @@
 
 A reference Android application demonstrating integration of the Scytales Mobile Identity (MID) SDK for digital identity wallet functionality. Built with Jetpack Compose and Kotlin, following modern Android development practices.
 
+## Documentation
+
+- **Integration guide:** [Scytales MID SDK for Android](https://docs.scytales.dev/sdks/scytales-wallet-sdk/scytales-mid-sdk-for-android) - installation, activation and initialization, then the feature guides for issuance, presentation, document management, FaceTec, trust and more.
+- **This app:** [Architecture Overview](docs/architecture.md) - how the example is built.
+
 ## Overview
 
 This example application showcases how to integrate the Scytales MID SDK to build a digital identity wallet that supports:
@@ -85,8 +90,8 @@ This example application showcases how to integrate the Scytales MID SDK to buil
    scytalesRepositoryToken=YOUR-ENTITLEMENT-TOKEN
    ```
 
-   See [Downloading SDK Dependencies](docs/features/dependencies.md) for CI setup and
-   troubleshooting.
+   See [Installation](https://docs.scytales.dev/sdks/scytales-wallet-sdk/scytales-mid-sdk-for-android/installation)
+   for CI setup and troubleshooting.
 
 3. **Configure SDK** (Mandatory)
    
@@ -105,7 +110,7 @@ This example application showcases how to integrate the Scytales MID SDK to buil
    FaceTec is configured only when the device key is set. Without it the face and ID scan steps
    fail while OpenID Connect, form and sample-data steps work unchanged. The key is issued by
    Scytales, and `com.facetec:facetec-sdk` must stay declared in `app/build.gradle.kts`.
-   See [FaceTec Biometric Verification](docs/features/facetec.md).
+   See [Biometric Verification (FaceTec)](https://docs.scytales.dev/sdks/scytales-wallet-sdk/biometric-verification-facetec).
 
    **Development only:** the example trusts every issuer and verifier.
    [`ScytalesSdkInitializer.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/sdk/ScytalesSdkInitializer.kt)
@@ -125,7 +130,7 @@ After installation, the app will:
 2. Display the home screen (empty initially)
 3. Allow you to add documents via the + button
 
-See the [Getting Started Guide](docs/getting-started/initialization.md) for detailed configuration options.
+See [Initialization](https://docs.scytales.dev/sdks/scytales-wallet-sdk/scytales-mid-sdk-for-android/initialization) for detailed configuration options.
 
 ## Project Structure
 
@@ -148,27 +153,6 @@ app/src/main/java/com/scytales/mid/sdk/example/app/
 └── openid4vci/                 # OpenID4VCI coordinator
 ```
 
-## Documentation
-
-### Integration Guides
-
-- [**Installation**](docs/getting-started/installation.md) - Add SDK to your project
-- [**Configuration**](docs/getting-started/configuration.md) - Configure license and options
-- [**Initialization**](docs/getting-started/initialization.md) - Initialize the SDK
-
-### Feature Guides
-
-- [**Document Issuance**](docs/features/document-issuance.md) - Issue credentials via Scytales Manager and OpenID4VCI
-- [**Document Presentation**](docs/features/document-presentation.md) - Present credentials via Proximity, Remote, and DCAPI
-- [**Document Management**](docs/features/document-management.md) - List, view, and delete documents
-- [**Downloading SDK Dependencies**](docs/features/dependencies.md) - Cloudsmith credentials and artifact resolution
-- [**SDK Initialization**](docs/features/initialization.md) - License, wallet, manager and protocol configuration
-- [**FaceTec Biometric Verification**](docs/features/facetec.md) - Optional biometric signup step
-
-### Reference
-
-- [**Architecture Overview**](docs/architecture.md) - Application architecture and patterns
-
 ## Requirements
 
 - **Android Studio**: Ladybug or later
@@ -183,8 +167,7 @@ This example application is provided for demonstration purposes. See license fil
 
 ## Support
 
-- **Documentation**: See the [`docs/`](docs/) folder
-- **SDK Reference**: See the [feature guides](docs/README.md#feature-guides)
+- **Documentation**: [Scytales MID SDK for Android](https://docs.scytales.dev/sdks/scytales-wallet-sdk/scytales-mid-sdk-for-android)
 - **Scytales Support**: Contact Scytales for SDK-specific questions
 
 ---
