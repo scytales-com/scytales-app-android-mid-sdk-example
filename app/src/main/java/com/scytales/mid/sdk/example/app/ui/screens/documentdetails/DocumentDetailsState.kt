@@ -26,6 +26,7 @@ data class DocumentDetails(
     val format: String,
     val issuedAt: Instant,
     val credentialCount: Int,
+    val credentialPolicy: String? = null,
     val issuerName: String? = null,
     val additionalInfo: Map<String, String> = emptyMap(),
     val claims: Map<String, Any> = emptyMap()
@@ -89,6 +90,7 @@ suspend fun IssuedDocument.toDocumentDetails(): DocumentDetails {
         format = formatInfo.first,
         issuedAt = this.issuedAt,
         credentialCount = this.credentialsCount(),
+        credentialPolicy = this.credentialPolicy::class.simpleName,
         issuerName = this.issuerMetadata?.issuerDisplay?.firstOrNull()?.name,
         additionalInfo = additionalInfo,
         claims = claims

@@ -9,9 +9,10 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 - Issuing and storing digital credentials (mDL, SD-JWT-VC)
 - Presenting credentials in person (proximity) and online (remote)
 - Managing multiple document types and credentials
+- Batch credentials, re-issue, and deferred issuance (documents the issuer approves later)
 - Biometric enrollment and authentication
 
-**SDK Version:** 2.1.0
+**SDK Version:** 3.0.0
 
 ## Features
 
@@ -26,7 +27,7 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 
 | Method | Description | Features | Implementation |
 |--------|-------------|----------|----------------|
-| **Scytales Manager** | Direct issuance via organization backend with biometric enrollment | Organization-based issuance, OpenID Connect signup, optional FaceTec biometric verification | ✅ [`DocumentTypesScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/manager/DocumentTypesScreen.kt) |
+| **Scytales Manager** | Direct issuance via organization backend with biometric enrollment | Organization-based issuance, OpenID Connect signup, optional FaceTec biometric verification, batch credentials, deferred issuance | ✅ [`DocumentTypesScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/manager/DocumentTypesScreen.kt) |
 | **OpenID4VCI v1.0** | Standard credential offer protocol with QR code scanning | Authorization Code Flow, Pre-authorization Flow, DPoP JWT, Batch issuance, Deferred issuance | ✅ [`OfferReviewScreen.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/openid4vci/OfferReviewScreen.kt) |
 
 ### Document Presentation Methods
@@ -41,16 +42,17 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 
 | Feature | Description | Details |
 |---------|-------------|---------|
-| **List Documents** | Display all issued credentials | Filter by type, format, or custom predicate |
-| **View Details** | Show document claims and metadata | Access namespaces, claims, format info, security properties |
+| **List Documents** | Display issued documents, and pending ones the issuer has not decided yet | A pending document has a **Check now** button that asks the issuer once ([`DocumentListViewModel.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/documents/DocumentListViewModel.kt)) |
+| **View Details** | Show document claims and metadata | Access namespaces, claims, format info, credential count and credential policy |
+| **Re-issue** | Replace a signup document with a new batch | From the document's details; the old document is deleted ([`DocumentDetailsViewModel.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/ui/screens/documentdetails/DocumentDetailsViewModel.kt)) |
 | **Delete Documents** | Remove credentials from wallet | Secure deletion with Keystore key removal |
-| **Batch Credentials** | Multiple credentials per document | This app requests `CredentialPolicy.RotatingBatch(numberOfCredentials = 1)` |
-| **Secure Storage** | Android Keystore-backed encryption | StrongBox support, user authentication options |
+| **Batch Credentials** | Multiple credentials per document | Signup: the issuer's template sets the batch, for example 10 credentials with `RotatingBatch`. OpenID4VCI: when the issuer leaves the policy to the wallet, this app requests `CredentialPolicy.RotatingBatch(numberOfCredentials = 1)` |
+| **Secure Storage** | Android Keystore-backed encryption | `KeyProtectionPolicy`: StrongBox when the device has it, no device unlock to use a key |
 
 ## Technology Stack
 
-- **SDK**: Scytales MID SDK 2.1.0
-- **Language**: Kotlin 2.2.21
+- **SDK**: Scytales MID SDK 3.0.0
+- **Language**: Kotlin 2.4.20
 - **UI**: Jetpack Compose with Material Design 3
 - **Architecture**: MVVM with Clean Architecture principles
 - **Min SDK**: 28 (Android 9.0)
@@ -61,10 +63,11 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 ### Prerequisites
 
 - Android Studio Ladybug or later
-- JDK 11+
+- JDK 17+
 - Android device or emulator (API 28+)
 - Scytales SDK license key
-- Cloudsmith repository credentials (username + API key, issued by Scytales)
+- Cloudsmith entitlement token (issued by Scytales)
+- A Scytales Manager 3.0.0 organization URL
 
 ### Setup
 
@@ -76,11 +79,10 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 
 2. **Add repository credentials** (Mandatory)
 
-   The SDK and FaceTec resolve from the Scytales Cloudsmith feed. Add your credentials to
-   `~/.gradle/gradle.properties` — outside the repository, so they are never committed:
+   The SDK and FaceTec resolve from the Scytales Cloudsmith feed. Add your entitlement token to
+   `~/.gradle/gradle.properties` — outside the repository, so it is never committed:
    ```properties
-   repositoryUser=YOUR-USER-NAME
-   repositoryPassword=YOUR-API-KEY
+   scytalesRepositoryToken=YOUR-ENTITLEMENT-TOKEN
    ```
 
    See [Downloading SDK Dependencies](docs/features/dependencies.md) for CI setup and
@@ -97,14 +99,19 @@ This example application showcases how to integrate the Scytales MID SDK to buil
 
        // Optional: required only for signup flows with a face or ID scan step
        val faceTecDeviceKey: String = ""
-       val faceTecPublicKey: String = ""
    }
    ```
 
-   FaceTec is configured only when both keys are set. Without them the face and ID scan steps
-   fail while OpenID Connect, form and sample-data steps work unchanged. The keys are issued by
+   FaceTec is configured only when the device key is set. Without it the face and ID scan steps
+   fail while OpenID Connect, form and sample-data steps work unchanged. The key is issued by
    Scytales, and `com.facetec:facetec-sdk` must stay declared in `app/build.gradle.kts`.
    See [FaceTec Biometric Verification](docs/features/facetec.md).
+
+   **Development only:** the example trusts every issuer and verifier.
+   [`ScytalesSdkInitializer.kt`](app/src/main/java/com/scytales/mid/sdk/example/app/sdk/ScytalesSdkInitializer.kt)
+   sets `configureIssuerTrust { doNotVerify() }`, `configureReaderAuthentication { doNotEnforce() }`
+   and `configureWrpRegistrationPolicy(WrpRegistrationPolicy.Disabled)`. Replace them with your
+   trust configuration before production.
 
 4. **Build and run**
    ```bash
@@ -165,10 +172,10 @@ app/src/main/java/com/scytales/mid/sdk/example/app/
 ## Requirements
 
 - **Android Studio**: Ladybug or later
-- **JDK**: 11 or higher
+- **JDK**: 17 or higher
 - **Min SDK**: 28 (Android 9.0)
 - **Target SDK**: 36
-- **Kotlin**: 2.2.21
+- **Kotlin**: 2.4.20
 
 ## License
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scytales.mid.sdk.example.app.sdk.ScytalesSdkInitializer
 import com.scytales.mid.sdk.manager.AvailableDocumentType
+import com.scytales.mid.sdk.manager.signup.SignupOutcome
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,9 +55,18 @@ class DocumentIssuanceViewModel : ViewModel() {
                 val result = signupManager.issueDocument(activity, documentType)
 
                 result.fold(
-                    onSuccess = { issued ->
-                        Log.d(TAG, "Document issued successfully: ${issued.document.id}")
-                        _issuanceState.value = IssuanceState.Success(issued.document)
+                    onSuccess = { outcome ->
+                        _issuanceState.value = when (outcome) {
+                            is SignupOutcome.Issued -> {
+                                Log.d(TAG, "Document issued successfully: ${outcome.document.id}")
+                                IssuanceState.Success(outcome.document)
+                            }
+
+                            is SignupOutcome.Deferred -> {
+                                Log.d(TAG, "Document issuance deferred: ${outcome.document.id}")
+                                IssuanceState.Deferred(outcome.document)
+                            }
+                        }
                     },
                     onFailure = { error ->
                         Log.e(TAG, "Document issuance failed", error)

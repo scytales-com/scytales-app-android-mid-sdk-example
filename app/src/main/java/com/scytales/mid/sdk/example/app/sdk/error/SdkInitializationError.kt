@@ -104,7 +104,7 @@ sealed class SdkInitializationError(
      * ## Resolution
      * 1. Verify that [SdkConfig.organizationUrl] is set correctly
      * 2. Ensure the URL uses HTTPS (HTTP is not supported)
-     * 3. Check that the URL includes the full path (e.g., `/api/v3`)
+     * 3. Check that the URL is the complete one your Scytales Manager gives
      * 4. Verify the organization exists in Scytales Manager
      * 5. Test the URL accessibility from the device
      * 6. Contact your organization administrator for the correct URL
@@ -112,7 +112,7 @@ sealed class SdkInitializationError(
      * ## Example
      * ```kotlin
      * // Correct configuration
-     * SdkConfig.organizationUrl = "https://api.your-org.scytales.com/api/v3"
+     * SdkConfig.organizationUrl = "https://api.your-org.scytales.com"
      * val result = ScytalesSdkInitializer.initialize(context)
      * ```
      *

@@ -25,10 +25,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,9 +61,21 @@ fun DocumentDetailsScreen(
     )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isReissuing by viewModel.isReissuing.collectAsStateWithLifecycle()
+    val message by viewModel.message.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Result of a re-issue
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Document Details") },
@@ -98,7 +113,11 @@ fun DocumentDetailsScreen(
                 }
 
                 is DocumentDetailsState.Success -> {
-                    DocumentDetailsContent(details = currentState.details)
+                    DocumentDetailsContent(
+                        details = currentState.details,
+                        isReissuing = isReissuing,
+                        onReissue = { viewModel.reissueDocument() }
+                    )
                 }
 
                 is DocumentDetailsState.Error -> {
@@ -148,6 +167,8 @@ private fun LoadingContent(modifier: Modifier = Modifier) {
 @Composable
 private fun DocumentDetailsContent(
     details: DocumentDetails,
+    isReissuing: Boolean,
+    onReissue: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -200,6 +221,24 @@ private fun DocumentDetailsContent(
                         .format(details.issuedAt)
                 )
                 InfoRow(label = "Credentials", value = details.credentialCount.toString())
+                details.credentialPolicy?.let { policy ->
+                    InfoRow(label = "Credential policy", value = policy)
+                }
+            }
+        }
+
+        // Re-issue: a new batch of credentials replaces the document
+        item {
+            OutlinedButton(
+                onClick = onReissue,
+                enabled = !isReissuing,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isReissuing) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp))
+                } else {
+                    Text("Re-issue")
+                }
             }
         }
 

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.CredentialSelection
 
 /**
  * ViewModel for managing DCAPI (Digital Credentials API) presentation
@@ -43,7 +43,7 @@ class DCAPIPresentationViewModel : ViewModel() {
     private var currentProcessedRequest: RequestProcessor.ProcessedRequest.Success? = null
 
     // The SDK may offer several ways to satisfy the request; this example takes the first.
-    private var currentSelection: CredentialPresentmentSelection? = null
+    private var currentSelection: CredentialSelection? = null
 
     companion object {
         private const val TAG = "DCAPIViewModel"
@@ -213,6 +213,11 @@ class DCAPIPresentationViewModel : ViewModel() {
                         throwable = event.error,
                         errorIntent = null
                     )
+                }
+
+                is TransferEvent.Rejected -> {
+                    Log.d(TAG, "Verifier rejected the presentation: ${event.redirectUri}")
+                    _state.value = DCAPIState.Error(message = "The verifier rejected the presentation")
                 }
 
                 // Ignore events that are not relevant for DCAPI

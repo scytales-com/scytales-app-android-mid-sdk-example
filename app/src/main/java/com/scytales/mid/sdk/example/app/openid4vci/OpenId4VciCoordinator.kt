@@ -115,7 +115,7 @@ object OpenId4VciCoordinator {
                     is IssueEvent.Failure -> {
                         Log.e(TAG, "Issuance failed", event.cause)
                         cleanup()
-                        close(event.cause)
+                        close()
                     }
                     else -> { /* Flow continues */ }
                 }

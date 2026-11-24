@@ -2,7 +2,7 @@ package com.scytales.mid.sdk.example.app.presentation
 
 import com.scytales.mid.sdk.Sdk
 import eu.europa.ec.eudi.wallet.document.IssuedDocument
-import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.CredentialSelection
 
 /** A document the verifier asked for, as the consent screens display it. */
 data class RequestedDocumentInfo(
@@ -11,7 +11,7 @@ data class RequestedDocumentInfo(
 )
 
 /** Projects a selection into consent rows, shared by the proximity, remote and DCAPI screens. */
-fun CredentialPresentmentSelection.toRequestedDocuments(sdk: Sdk): List<RequestedDocumentInfo> =
+fun CredentialSelection.toRequestedDocuments(sdk: Sdk): List<RequestedDocumentInfo> =
     matches.map { match ->
         val documentId = match.credential.document.identifier
         val issuedDocument = sdk.getDocumentById(documentId) as? IssuedDocument

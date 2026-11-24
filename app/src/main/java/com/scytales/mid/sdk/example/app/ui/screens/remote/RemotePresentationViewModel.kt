@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.CredentialSelection
 
 /**
  * ViewModel for Remote Presentation (OpenID4VP) flow
@@ -39,7 +39,7 @@ class RemotePresentationViewModel : ViewModel() {
     private var currentProcessedRequest: RequestProcessor.ProcessedRequest.Success? = null
 
     // The SDK may offer several ways to satisfy the request; this example takes the first.
-    private var currentSelection: CredentialPresentmentSelection? = null
+    private var currentSelection: CredentialSelection? = null
 
     /**
      * Start remote presentation with the given request URI
@@ -200,6 +200,17 @@ class RemotePresentationViewModel : ViewModel() {
                 is TransferEvent.Disconnected -> {
                     Log.d(TAG, "Disconnected")
                     stopRemotePresentation()
+                }
+
+                is TransferEvent.Rejected -> {
+                    // The verifier refused the response; it may also send a page to open
+                    Log.d(TAG, "Verifier rejected the presentation: ${event.redirectUri}")
+                    _state.value = RemoteState.Error(
+                        message = "The verifier rejected the presentation",
+                        throwable = null
+                    )
+                    detachTransferEventListener()
+                    currentProcessedRequest = null
                 }
 
                 is TransferEvent.Error -> {

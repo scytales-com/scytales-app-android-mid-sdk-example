@@ -15,8 +15,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -34,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.scytales.mid.sdk.example.app.ui.components.DocumentTypeCard
@@ -138,10 +143,10 @@ fun DocumentTypesScreen(
 
         // Issuance loading dialog
         if (issuanceState is IssuanceState.Issuing) {
-            androidx.compose.ui.window.Dialog(
+            Dialog(
                 onDismissRequest = { /* Not dismissible */ }
             ) {
-                androidx.compose.material3.Card {
+                Card {
                     Column(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -166,7 +171,7 @@ fun DocumentTypesScreen(
         // Issuance error dialog
         if (issuanceState is IssuanceState.Error) {
             val errorState = issuanceState as IssuanceState.Error
-            androidx.compose.material3.AlertDialog(
+            AlertDialog(
                 onDismissRequest = { issuanceViewModel.resetState() },
                 icon = {
                     Icon(
@@ -178,9 +183,35 @@ fun DocumentTypesScreen(
                 title = { Text("Issuance Failed") },
                 text = { Text(errorState.message) },
                 confirmButton = {
-                    androidx.compose.material3.TextButton(
+                    TextButton(
                         onClick = { issuanceViewModel.resetState() }
                     ) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
+
+        // Issuance deferred dialog: the document waits in My Documents as Pending
+        if (issuanceState is IssuanceState.Deferred) {
+            val finish = {
+                issuanceViewModel.resetState()
+                onDocumentIssued()
+            }
+            AlertDialog(
+                onDismissRequest = finish,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null
+                    )
+                },
+                title = { Text("Document pending") },
+                text = {
+                    Text("The issuer has not decided yet. The document is in My Documents as Pending: tap it to check.")
+                },
+                confirmButton = {
+                    TextButton(onClick = finish) {
                         Text("OK")
                     }
                 }
