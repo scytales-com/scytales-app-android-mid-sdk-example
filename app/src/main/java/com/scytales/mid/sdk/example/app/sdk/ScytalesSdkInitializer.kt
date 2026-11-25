@@ -17,14 +17,16 @@ import eu.europa.ec.eudi.openid4vci.EcConfig
 import eu.europa.ec.eudi.openid4vci.EncryptionSupportConfig
 import eu.europa.ec.eudi.openid4vci.RsaConfig
 import eu.europa.ec.eudi.wallet.dcapi.DCAPIProtocol
+import eu.europa.ec.eudi.wallet.document.KeyProtectionPolicy
+import eu.europa.ec.eudi.wallet.document.KeyProtectionUnsupportedException
 import eu.europa.ec.eudi.wallet.issue.openid4vci.OpenId4VciManager
 import eu.europa.ec.eudi.wallet.logging.Logger
+import eu.europa.ec.eudi.wallet.registration.relyingparty.WrpRegistrationPolicy
 import eu.europa.ec.eudi.wallet.transfer.openId4vp.ClientIdScheme
 import eu.europa.ec.eudi.wallet.transfer.openId4vp.Format
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
-import kotlin.time.Duration
 
 /**
  * Singleton initializer for Scytales MID SDK.
@@ -250,16 +252,23 @@ object ScytalesSdkInitializer {
 
                         configureDocumentManager(storageFile.absolutePath)
                         configureLogging(level = logLevel)
+
+                        // Development only: replace these opt-outs with production trust configuration.
+                        configureIssuerTrust { doNotVerify() }
+                        configureReaderAuthentication { doNotEnforce() }
+                        configureWrpRegistrationPolicy(WrpRegistrationPolicy.Disabled)
+
+                        // No device unlock to use a key; StrongBox when the device has it.
                         configureDocumentKeyCreation(
-                            userAuthenticationRequired = false,
-                            userAuthenticationTimeout = Duration.INFINITE,
-                            useStrongBoxForKeys = true
+                            userAuthentication = KeyProtectionPolicy.Disabled,
+                            strongBox = KeyProtectionPolicy.IfSupported
                         )
                         configureOpenId4Vci {
                             // The issuer comes from the credential offer.
                             withClientAuthenticationType(
                                 OpenId4VciManager.ClientAuthenticationType.None("wallet-dev")
                             )
+                            withIssuanceProofProfile(OpenId4VciManager.IssuanceProofProfile.Standard)
                             withAuthFlowRedirectionURI("eudi-openid4ci://authorize")
                             // SUPPORTED: also accept issuers that cannot encrypt the response.
                             withResponseEncryptionConfig(
@@ -323,12 +332,11 @@ object ScytalesSdkInitializer {
                             openIdConnect {
                                 redirectUri = SdkConfig.singupOidcRedirectUri.toUri()
                             }
-                            // Only when keys are configured; face and ID scan steps need it.
+                            // Only when the key is configured; face and ID scan steps need it.
                             if (SdkConfig.isFaceTecConfigured) {
                                 Log.d(TAG, "Configuring FaceTec...")
                                 facetec {
                                     deviceKeyIdentifier = SdkConfig.faceTecDeviceKey
-                                    publicFaceScanEncryptionKey = SdkConfig.faceTecPublicKey
                                 }
                             }
                         }
@@ -351,6 +359,12 @@ object ScytalesSdkInitializer {
 
             Log.i(TAG, "SDK initialized successfully!")
             Result.success(sdk)
+
+        } catch (e: KeyProtectionUnsupportedException) {
+            initializationState = SdkState.Failed(e)
+
+            Log.e(TAG, "This device cannot protect keys as configured: ${e.protection}", e)
+            Result.failure(e)
 
         } catch (e: Exception) {
             initializationState = SdkState.Failed(e)

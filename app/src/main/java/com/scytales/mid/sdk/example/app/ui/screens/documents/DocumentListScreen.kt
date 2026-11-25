@@ -23,11 +23,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -41,7 +45,7 @@ import com.scytales.mid.sdk.example.app.ui.theme.Scytalesappandroidmidsdkexample
 import java.time.Instant
 
 /**
- * Document list screen displaying all issued documents
+ * Document list screen displaying issued documents and pending ones the issuer has not decided yet
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,13 +56,24 @@ fun DocumentListScreen(
     viewModel: DocumentListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val message by viewModel.message.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Automatically refresh documents when this screen is displayed
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         viewModel.loadDocuments()
     }
 
+    // Result of a pending check
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.onMessageShown()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("My Documents") },
@@ -89,7 +104,9 @@ fun DocumentListScreen(
                 is DocumentListState.Success -> {
                     DocumentListContent(
                         documents = currentState.documents,
-                        onDocumentClick = { document -> onDocumentClick(document.id) }
+                        onDocumentClick = { document ->
+                            viewModel.onDocumentClick(document.id, openDetails = onDocumentClick)
+                        }
                     )
                 }
 

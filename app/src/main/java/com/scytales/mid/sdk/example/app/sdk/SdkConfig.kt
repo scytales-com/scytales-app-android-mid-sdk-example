@@ -25,7 +25,6 @@ package com.scytales.mid.sdk.example.app.sdk
  *
  * // Optional configurations (set at runtime if needed)
  * SdkConfig.faceTecDeviceKey = "your-device-key"
- * SdkConfig.faceTecPublicKey = "your-public-key"
  *
  * // Initialize SDK
  * ScytalesSdkInitializer.initialize(context)
@@ -79,8 +78,8 @@ object SdkConfig {
      * - Biometric enrollment (if configured)
      *
      * ## Format
-     * The URL should be a complete HTTPS endpoint including the API version path.
-     * Example: `https://api.your-organization.scytales.com/api/v3`
+     * The complete HTTPS URL of your organization, as your Scytales Manager gives it.
+     * Example: `https://api.your-organization.scytales.com`
      *
      * ## Network Requirements
      * - Must be accessible from the device
@@ -105,18 +104,15 @@ object SdkConfig {
      * Needed only for signup flows with a face or ID scan step. Leave blank and those steps fail
      * with `StepNotConfiguredException`; OIDC, form and sample-data steps are unaffected.
      *
-     * Obtain both FaceTec keys from Scytales for your `applicationId`. The
+     * Obtain the FaceTec device key from Scytales for your `applicationId`. The
      * `com.facetec:facetec-sdk` dependency in build.gradle.kts is also required, as the SDK does
      * not bundle it.
      */
     const val faceTecDeviceKey: String = ""
 
-    /** FaceTec public face-scan encryption key (OPTIONAL). See [faceTecDeviceKey]. */
-    const val faceTecPublicKey: String = ""
-
-    /** True when both FaceTec keys are set, in which case biometric signup steps are configured. */
+    /** True when the FaceTec device key is set, in which case biometric signup steps are configured. */
     val isFaceTecConfigured: Boolean
-        get() = faceTecDeviceKey.isNotBlank() && faceTecPublicKey.isNotBlank()
+        get() = faceTecDeviceKey.isNotBlank()
 
     /**
      * OIDC Redirect URI for signup flow with OpenID Connect (REQUIRED).

@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +30,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
- * Card component to display a document
+ * Card component to display a document.
+ *
+ * A pending document shows a Check now button; tapping the card does the same.
  */
 @Composable
 fun DocumentCard(
@@ -49,10 +53,14 @@ fun DocumentCard(
         ) {
             // Document icon
             Icon(
-                imageVector = Icons.Default.AccountBox,
-                contentDescription = "Document",
+                imageVector = if (document.isPending) Icons.Default.Info else Icons.Default.AccountBox,
+                contentDescription = if (document.isPending) "Pending document" else "Document",
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = if (document.isPending) {
+                    MaterialTheme.colorScheme.tertiary
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -80,28 +88,41 @@ fun DocumentCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Format and credential count
-                Row {
+                if (document.isPending) {
+                    // Pending: the issuer has not decided yet
                     Text(
-                        text = document.format,
+                        text = "Pending • applied ${formatDate(document.createdAt)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    FilledTonalButton(onClick = onClick) {
+                        Text("Check now")
+                    }
+                } else {
+                    // Format, credential count and credential policy
+                    Text(
+                        text = buildString {
+                            append(document.format)
+                            append(" • ${document.credentialCount} credential")
+                            if (document.credentialCount != 1) append("s")
+                            document.credentialPolicy?.let { append(" • $it") }
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Created date
                     Text(
-                        text = " • ${document.credentialCount} credential${if (document.credentialCount != 1) "s" else ""}",
+                        text = formatDate(document.createdAt),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Created date
-                Text(
-                    text = formatDate(document.createdAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
@@ -127,9 +148,27 @@ private fun DocumentCardPreview() {
                 docType = "eu.europa.ec.eudi.pid.1",
                 format = "mso_mdoc",
                 createdAt = Instant.now(),
-                credentialCount = 3
+                credentialCount = 10,
+                credentialPolicy = "RotatingBatch"
             )
         )
     }
 }
 
+@Preview
+@Composable
+private fun PendingDocumentCardPreview() {
+    ScytalesappandroidmidsdkexampleTheme {
+        DocumentCard(
+            document = DocumentItem(
+                id = "doc-456",
+                name = "Driver License",
+                docType = "org.iso.18013.5.1.mDL",
+                format = "mso_mdoc",
+                createdAt = Instant.now(),
+                credentialCount = 0,
+                isPending = true
+            )
+        )
+    }
+}

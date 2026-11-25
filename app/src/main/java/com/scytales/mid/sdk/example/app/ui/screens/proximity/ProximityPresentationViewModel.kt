@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.multipaz.presentment.CredentialPresentmentSelection
+import org.multipaz.presentment.CredentialSelection
 
 /**
  * ViewModel for managing proximity presentation state and events
@@ -30,8 +30,8 @@ class ProximityPresentationViewModel : ViewModel() {
     // Store the processed request to use when user approves
     private var currentProcessedRequest: RequestProcessor.ProcessedRequest.Success? = null
 
-    // The SDK may offer several ways to satisfy the request; this example takes the first.
-    private var currentSelection: CredentialPresentmentSelection? = null
+    // The credentials to share: one per requested document.
+    private var currentSelection: CredentialSelection? = null
 
     companion object {
         private const val TAG = "ProximityViewModel"
@@ -198,6 +198,11 @@ class ProximityPresentationViewModel : ViewModel() {
                     // For proximity presentation, redirect is not typically used
                 }
 
+                is TransferEvent.Rejected -> {
+                    // Not emitted during proximity presentation
+                    Log.d(TAG, "Rejected: ${event.redirectUri}")
+                }
+
                 is TransferEvent.Disconnected -> {
                     Log.d(TAG, "Verifier disconnected")
                     _state.value = ProximityState.Disconnected
@@ -232,9 +237,13 @@ class ProximityPresentationViewModel : ViewModel() {
         try {
             val processedRequest = event.processedRequest.getOrThrow()
 
-            // Empty means no document in this wallet satisfies the request.
-            val selection = processedRequest.presentmentSelections.firstOrNull()
-            if (selection == null) {
+            // Proximity offers one selection holding every matching credential, including each
+            // credential of a batch; share only the first candidate for each requested document.
+            val offered = processedRequest.presentmentSelections.firstOrNull()
+            val selection = offered?.let {
+                CredentialSelection(matches = it.matches.groupBy { match -> match.source }.values.map { candidates -> candidates.first() })
+            }
+            if (selection == null || selection.matches.isEmpty()) {
                 Log.w(TAG, "No document in this wallet satisfies the request")
                 _state.value = ProximityState.Error(
                     message = "No matching document for this request",

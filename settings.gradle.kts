@@ -19,8 +19,9 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://dl.cloudsmith.io/basic/scytales/scytales/maven/")
             credentials {
-                username = providers.gradleProperty("repositoryUser").orNull
-                password = providers.gradleProperty("repositoryPassword").orNull
+                // With an entitlement token the username is the literal word "token"
+                username = "token"
+                password = providers.gradleProperty("scytalesRepositoryToken").orNull
             }
         }
     }
